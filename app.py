@@ -1292,7 +1292,7 @@ def render_cartoon_voice_player(spoken_text: str, enabled: bool, nonce: int, moo
           window.speechSynthesis.cancel();
           const u = new SpeechSynthesisUtterance(msgText);
           u.pitch = 1.18;  // Clear youthful kid tone
-          u.rate = 1.08;   // Crisp, energetic speed (never slow!)
+          u.rate = 1.28;   // Snappy, energetic speed!
           u.volume = 1.0;
           const voices = window.speechSynthesis.getVoices();
           const pref = voices.find(v => /en/i.test(v.lang) && /(ana|aria|google us english|samantha|zira)/i.test(v.name));
@@ -1305,7 +1305,7 @@ def render_cartoon_voice_player(spoken_text: str, enabled: bool, nonce: int, moo
         function playBuddyVoice() {{
           if (audioEl) {{
             audioEl.currentTime = 0;
-            audioEl.playbackRate = 1.08;
+            audioEl.playbackRate = 1.28;
             audioEl.onplay = () => {{ statusEl.innerText = '🧒🎵 Speaking...'; }};
             audioEl.onended = () => {{ statusEl.innerText = '{label}'; }};
             audioEl.play().catch(() => {{
