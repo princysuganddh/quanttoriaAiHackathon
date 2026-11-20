@@ -12,7 +12,7 @@ st.set_page_config(
     page_title="Quanttoria AI Maths | Adaptive Psychometric Quiz Engine",
     page_icon="🧮",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # ==========================================
@@ -24,6 +24,19 @@ st.markdown("""
 
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
+    }
+
+    /* Maximize usable width & kid-friendly typography */
+    .block-container {
+        padding-top: 1.1rem !important;
+        padding-left: 1.8rem !important;
+        padding-right: 1.8rem !important;
+        max-width: 100% !important;
+    }
+    div[data-testid="stRadio"] label p,
+    div[data-testid="stTextInput"] input {
+        font-size: 1.08rem !important;
+        font-weight: 600 !important;
     }
 
     /* Main App Header */
@@ -2572,9 +2585,9 @@ current_qid = QUIZ_ORDER[st.session_state.current_q_idx]
 problem = QUIZ_QUESTIONS[current_qid]
 
 # ==========================================
-# 50/50 TWO-PANEL SPLIT SCREEN LAYOUT
+# WIDE QUESTION-FIRST TWO-PANEL LAYOUT (BIG & CLEAR FOR KIDS!)
 # ==========================================
-left_col, right_col = st.columns([1, 1], gap="large")
+left_col, right_col = st.columns([1.45, 1], gap="medium")
 
 # ==========================================
 # LEFT PANEL: Question Image + Solution Steps & Next Button (on Correct) OR Cue + Answer Box
