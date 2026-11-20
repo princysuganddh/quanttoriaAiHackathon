@@ -66,8 +66,8 @@ st.markdown("""
         letter-spacing: 0.3px;
     }
 
-    /* GeoGebra Problem Card */
-    .geogebra-card {
+    /* Curriculum Problem Card */
+    .problem-card {
         background: #F8FAFC;
         border: 2px solid #E2E8F0;
         border-left: 6px solid #4F46E5;
@@ -75,7 +75,7 @@ st.markdown("""
         padding: 18px 22px;
         margin-bottom: 20px;
     }
-    .geogebra-badge {
+    .curriculum-badge {
         display: inline-block;
         background: #EEF2FF;
         color: #4F46E5;
@@ -171,31 +171,6 @@ st.markdown("""
         margin-bottom: 6px;
     }
 
-    /* Right Panel Whiteboard Container */
-    .whiteboard-container {
-        background-color: #FAFAFA;
-        background-image: 
-            linear-gradient(#E2E8F0 1.2px, transparent 1.2px),
-            linear-gradient(90deg, #E2E8F0 1.2px, transparent 1.2px);
-        background-size: 24px 24px;
-        border: 3px solid #CBD5E1;
-        border-radius: 16px;
-        padding: 24px;
-        min-height: 680px;
-        box-shadow: inset 0 2px 6px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.06);
-    }
-    .whiteboard-header {
-        font-family: 'Architects Daughter', cursive;
-        font-size: 1.6rem;
-        color: #334155;
-        border-bottom: 2px dashed #94A3B8;
-        padding-bottom: 10px;
-        margin-bottom: 16px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
     /* Whiteboard reveal cards */
     .wb-step-card {
         background: white;
@@ -244,6 +219,7 @@ st.markdown("""
 # AGENT SKILLS LOADER & GEMINI INTEGRATION
 # ==========================================
 SKILLS_DIR = os.path.join(os.path.dirname(__file__), "skills")
+ASSETS_DIR = os.path.join(os.path.dirname(__file__), "assets")
 
 @st.cache_data
 def load_skill(filename: str) -> str:
@@ -260,31 +236,65 @@ deliberate_bug_leo_skill = load_skill("deliberate_bug_leo.md")
 # CURRICULUM PROBLEMS DATABASE
 # ==========================================
 CURRICULUM_PROBLEMS = {
+    "Q.05": {
+        "id": "Q.05",
+        "title": "Q.05 (Hangar Fuel: Quarts vs Gallons)",
+        "question": "The hangar needs to have fuel. 16 quarts of fuel costs the same as 4 gallons of fuel. Which is the better deal in terms of quantity?",
+        "image_file": os.path.join(ASSETS_DIR, "hangar_fuel_question.png"),
+        "solution_image_file": os.path.join(ASSETS_DIR, "hangar_fuel_solution.png"),
+        "default_working": "1 gallon = 2 quarts, so 4 gallons = 8 quarts. Therefore, 16 quarts is the better deal because 16 > 8.",
+        "default_answer": "16 quarts of fuel",
+        "correct_answer": "Both options are equally viable (16 quarts = 4 gallons)",
+        "target_standard": "CCSS.MATH.CONTENT.4.MD.A.1",
+        "target_gap_name": "Liquid Volume Customary Conversion: 1 Gallon = 4 Quarts",
+        "misconception_desc": "You calculated based on 1 gallon = 2 quarts (confusing quarts with pints/liters). In US Customary measurement, 1 gallon is strictly 4 quarts! Therefore, 4 gallons × 4 quarts = 16 quarts. Both deals give the exact same quantity!",
+        "wb1": "1 gallon = 4 quarts ⟹ 4 gallons = 4 × 4 = 16 quarts",
+        "wb2": "16 quarts = 16 quarts ⟹ Both the options are equally viable!",
+        "correct_wb2_math": "4 gallons × 4 = 16 quarts (Equal quantities)",
+        "leo_bug_prompt": "Wait! I picked 16 quarts too! I thought 1 gallon was only 2 quarts (like a 2-liter bottle!), so 4 gallons would be 8 quarts. That's why I told ground crew that 16 quarts had twice as much fuel! How many quarts are actually in a gallon?",
+        "leo_healed_reaction": "AHA!! 💡 Mind blown! 1 US Gallon = 4 quarts, NOT 2 quarts! So 4 gallons = 4 × 4 = 16 quarts! That means BOTH options offer the exact same quantity of fuel! Thank you for teaching me and curing my Ghost Bug!",
+        "heal_regex": r"(4|four|equal|same)",
+        "sample_rule": "1 gallon = 4 quarts, so 4 gallons = 16 quarts!"
+    },
     "Q.01": {
         "id": "Q.01",
         "title": "Q.01 (Plane Cargo Capacity)",
         "question": "The available capacity of the cargo area in a commercial plane is 1,300 lb. If 1/2 ton of the cargo is loaded, how much more can be added?",
+        "image_file": None,
+        "solution_image_file": None,
         "default_working": "1/2 ton = 500 lb, so 1300 - 500 = 800 lb",
         "default_answer": "800 lb",
         "correct_answer": "300 lb",
+        "target_standard": "CCSS.MATH.CONTENT.4.MD.A.1",
+        "target_gap_name": "Customary Weight Conversion: 1 Ton = 2,000 lb",
+        "misconception_desc": "You assumed 1/2 ton = 500 lb (by falsely mapping 1 ton = 1,000 lb, confusing metric prefixes with US Customary units). In Grade 4 standard units, 1 ton = 2,000 pounds, so half a ton is 1,000 lb!",
         "wb1": "1 ton = 2,000 lb ⟹ 1/2 ton = 1,000 lb",
         "wb2": "1,300 lb - 1,000 lb = 300 lb more can be added",
+        "correct_wb2_math": "1,300 - 1,000 = 300 lb",
         "leo_bug_prompt": "Wait, I did the exact same thing! In my problem with the small passenger cargo pod, we had 1/4 ton of cargo. I reasoned: if 1/2 ton is 500 lb, then 1/4 ton must be 250 lb! But ground control flagged our flight plan. Can you teach me what the real rule is for converting tons to pounds?",
         "leo_healed_reaction": "AHA!! 💡 1 US Ton is 2,000 pounds, NOT 1,000! So 1/2 ton is 1,000 lb, and my 1/4 ton crate is 500 lb! We just fixed our flight plan! Thank you for teaching me!",
-        "correct_wb2_math": "1,300 - 1,000 = 300 lb"
+        "heal_regex": r"2[,\s]?000",
+        "sample_rule": "1 ton is 2,000 pounds, so half a ton is 1,000 lb!"
     },
     "Q.02": {
         "id": "Q.02",
         "title": "Q.02 (Cargo Trolleys)",
         "question": "To load 1/2 ton cargo on the plane, trolleys were brought. If the capacity of the trolleys is 850 lb, by what amount should its capacity be increased?",
+        "image_file": None,
+        "solution_image_file": None,
         "default_working": "1/2 ton = 500 lb, so 850 - 500 = 350 lb (or trolley already has extra 350 lb)",
         "default_answer": "350 lb",
         "correct_answer": "150 lb",
+        "target_standard": "CCSS.MATH.CONTENT.4.MD.A.1",
+        "target_gap_name": "Customary Weight Conversion: 1 Ton = 2,000 lb",
+        "misconception_desc": "You assumed 1/2 ton = 500 lb. In US Customary weight units, 1 ton = 2,000 lb, so half a ton is 1,000 lb. Since the trolley only holds 850 lb, capacity must increase by 1,000 - 850 = 150 lb!",
         "wb1": "1 ton = 2,000 lb ⟹ 1/2 ton = 1,000 lb",
         "wb2": "1,000 lb - 850 lb = 150 lb increase required",
+        "correct_wb2_math": "1,000 - 850 = 150 lb",
         "leo_bug_prompt": "Whoa! I calculated the exact same thing! I thought 1/2 ton was 500 lb, so I told ground ops that our 850 lb trolley was plenty big and had 350 lb of room to spare. But the cargo broke the trolley! How many pounds are actually in a ton?",
         "leo_healed_reaction": "BAM! 💡 Mind blown! 1 US Ton = 2,000 lb, meaning 1/2 ton is 1,000 lb! Since the trolley only holds 850 lb, we need 1,000 - 850 = 150 lb MORE capacity! You totally cured my Ghost Gap!",
-        "correct_wb2_math": "1,000 - 850 = 150 lb"
+        "heal_regex": r"2[,\s]?000",
+        "sample_rule": "1 ton is 2,000 pounds, so 1/2 ton is 1,000 lb!"
     }
 }
 
@@ -292,7 +302,7 @@ CURRICULUM_PROBLEMS = {
 # SESSION STATE INITIALIZATION
 # ==========================================
 if "current_problem_id" not in st.session_state:
-    st.session_state.current_problem_id = "Q.01"
+    st.session_state.current_problem_id = "Q.05"
 if "diagnosis_triggered" not in st.session_state:
     st.session_state.diagnosis_triggered = False
 if "gap_healed" not in st.session_state:
@@ -303,6 +313,8 @@ if "show_wb2" not in st.session_state:
     st.session_state.show_wb2 = False
 if "show_nano_banana" not in st.session_state:
     st.session_state.show_nano_banana = False
+if "show_solution_image" not in st.session_state:
+    st.session_state.show_solution_image = False
 if "teach_explanation" not in st.session_state:
     st.session_state.teach_explanation = ""
 
@@ -350,6 +362,7 @@ with st.sidebar:
         st.session_state.show_wb1 = False
         st.session_state.show_wb2 = False
         st.session_state.show_nano_banana = False
+        st.session_state.show_solution_image = False
         st.session_state.teach_explanation = ""
         st.rerun()
 
@@ -363,14 +376,14 @@ st.markdown("""
         <span style="font-size: 1.1rem; font-weight: 500; opacity: 0.85; margin-left: 10px;">| Prerequisite Gap Diagnostic & Healing Engine</span>
     </div>
     <div class="app-subtitle">
-        Diagnosing hidden foundational misconceptions in Grade 6 GeoGebra word problems through AI classmate peer-teaching and visual whiteboard scaffolds.
+        Diagnosing hidden foundational misconceptions in Grade 6 curriculum word problems through AI classmate peer-teaching and visual whiteboard scaffolds.
     </div>
     <div class="badge-row">
         <span class="tech-badge">⚡ Gemini 2.5 Flash</span>
         <span class="tech-badge">🍌 Nano Banana Visual Aid</span>
         <span class="tech-badge">🧠 Google Agent Skills</span>
         <span class="tech-badge">☁️ Google Cloud Run Ready</span>
-        <span class="tech-badge">📐 GeoGebra Grade 6 Math</span>
+        <span class="tech-badge">📐 Grade 6 Math Curriculum</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -379,8 +392,8 @@ st.markdown("""
 col_p1, col_p2 = st.columns([2, 1])
 with col_p1:
     selected_p = st.radio(
-        "**Select GeoGebra Curriculum Problem:**",
-        options=["Q.01", "Q.02"],
+        "**Select Curriculum Math Problem:**",
+        options=["Q.05", "Q.01", "Q.02"],
         format_func=lambda x: CURRICULUM_PROBLEMS[x]["title"],
         horizontal=True
     )
@@ -391,19 +404,20 @@ with col_p1:
         st.session_state.show_wb1 = False
         st.session_state.show_wb2 = False
         st.session_state.show_nano_banana = False
+        st.session_state.show_solution_image = False
         st.session_state.teach_explanation = ""
         st.rerun()
 
+problem = CURRICULUM_PROBLEMS[st.session_state.current_problem_id]
+
 with col_p2:
-    st.markdown("""
+    st.markdown(f"""
     <div style="text-align: right; padding-top: 24px;">
         <span style="background: #EEF2FF; color: #4338CA; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; border: 1px solid #C7D2FE;">
-            🎯 Target Gap: CCSS.MATH 4.MD.A.1
+            🎯 Target Gap: {problem['target_standard']}
         </span>
     </div>
     """, unsafe_allow_html=True)
-
-problem = CURRICULUM_PROBLEMS[st.session_state.current_problem_id]
 
 # ==========================================
 # 50/50 TWO-PANEL SPLIT SCREEN LAYOUT
@@ -411,20 +425,25 @@ problem = CURRICULUM_PROBLEMS[st.session_state.current_problem_id]
 left_col, right_col = st.columns([1, 1], gap="large")
 
 # ==========================================
-# LEFT PANEL: GeoGebra Question + GhostBug AI & Leo
+# LEFT PANEL: Curriculum Question + GhostBug AI & Leo
 # ==========================================
 with left_col:
     st.markdown(f"""
-    <div class="geogebra-card">
-        <span class="geogebra-badge">Grade 6 GeoGebra Problem • {problem['id']}</span>
+    <div class="problem-card">
+        <span class="curriculum-badge">Grade 6 Math Problem • {problem['id']}</span>
         <h3 style="margin: 0 0 10px 0; color: #1E293B; font-size: 1.15rem; font-weight: 600; line-height: 1.4;">
             {problem['question']}
         </h3>
-        <div style="font-size: 0.85rem; color: #64748B;">
-            <b>GeoGebra Simulation:</b> Cargo weighing scale, container cargo bay, and mass indicators.
-        </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # Display Question Image if available
+    if problem.get("image_file") and os.path.exists(problem["image_file"]):
+        st.image(
+            problem["image_file"],
+            caption=f"Curriculum Problem Visual • {problem['id']}",
+            use_container_width=True
+        )
 
     st.markdown("#### ✏️ Student Working Steps")
     student_steps = st.text_area(
@@ -437,7 +456,7 @@ with left_col:
     col_ans, col_btn = st.columns([1, 1])
     with col_ans:
         final_ans = st.text_input(
-            "Final Answer (e.g. 800 lb):",
+            "Final Answer:",
             value=problem["default_answer"],
             key=f"ans_{problem['id']}"
         )
@@ -452,16 +471,15 @@ with left_col:
 
     # DIAGNOSIS ENGINE RESULTS
     if st.session_state.diagnosis_triggered:
-        # Check if the student made the classic 500 lb / 800 lb misconception
-        st.markdown("""
+        st.markdown(f"""
         <div class="ghost-alert-box">
             <div class="ghost-alert-title">
                 <span>👻</span> 🚨 Ghost Bug Alert: Hidden Grade 4 Prerequisite Gap Detected!
             </div>
             <div style="color: #991B1B; font-size: 0.95rem; line-height: 1.5;">
-                <b>Identified Ghost Gap:</b> <code>CCSS.MATH.CONTENT.4.MD.A.1</code> — Customary Unit Weight Conversion.<br/>
-                <b>The Misconception:</b> You assumed <b>1/2 ton = 500 lb</b> (by falsely mapping 1 ton = 1,000 lb, confusing metric prefixes with US Customary units). In Grade 4 standard units, <b>1 ton = 2,000 pounds</b>!<br/>
-                <b>Downstream Impact:</b> Your Grade 6 subtraction step was mathematically executed, but poisoned by the Grade 4 prerequisite bug!
+                <b>Identified Ghost Gap:</b> <code>{problem['target_standard']}</code> — {problem['target_gap_name']}.<br/>
+                <b>The Misconception:</b> {problem['misconception_desc']}<br/>
+                <b>Downstream Impact:</b> Your Grade 6 reasoning was corrupted by this unstated Grade 4 foundational gap!
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -504,18 +522,18 @@ with left_col:
             # Quick Simulated Voice Clickable Chips
             col_v1, col_v2 = st.columns(2)
             with col_v1:
-                if st.button("🗣️ Speak: '1 ton is 2,000 lb, so 1/2 ton is 1,000 lb!'", use_container_width=True):
-                    st.session_state.teach_explanation = "Leo, 1 ton is actually 2,000 pounds! So half a ton is 1,000 pounds, not 500!"
+                if st.button(f"🗣️ Speak: '{problem['sample_rule']}'", use_container_width=True):
+                    st.session_state.teach_explanation = problem['sample_rule']
                     st.rerun()
             with col_v2:
-                if st.button("🗣️ Speak: 'Leo, 1 ton = 2,000 lb. That means 1/4 ton is 500 lb!'", use_container_width=True):
-                    st.session_state.teach_explanation = "In customary units, 1 ton equals 2,000 lb. So 1/4 ton is 500 lb!"
+                if st.button("🗣️ Speak: 'Both options give the exact same quantity!'", use_container_width=True):
+                    st.session_state.teach_explanation = "Leo, both options are equal because 4 gallons equals 16 quarts!"
                     st.rerun()
 
         explanation_input = st.text_input(
-            "Explain the conversion rule to Leo so he can fix his flight problem:",
+            "Explain the conversion rule to Leo so he can fix his mistake:",
             value=st.session_state.teach_explanation,
-            placeholder="e.g., Leo, 1 ton is actually 2,000 pounds, so half a ton is 1,000 lb!",
+            placeholder=f"e.g., Leo, {problem['sample_rule']}",
             key="teach_input"
         )
 
@@ -524,15 +542,14 @@ with left_col:
             teach_btn = st.button("🌱 Submit Explanation to Leo", type="secondary", use_container_width=True)
         with col_hint:
             if st.button("❓ Need a Hint for Leo?", use_container_width=True):
-                st.info("💡 Hint for Leo: How many pounds are in 1 standard ton? (Think: 2,000!)")
+                st.info(f"💡 Hint for Leo: {problem['wb1']}")
 
-        if teach_btn or (explanation_input and ("2,000" in explanation_input or "2000" in explanation_input)):
-            # Validation logic based on agent skill
-            has_2000 = bool(re.search(r"2[,\s]?000", explanation_input))
-            if has_2000:
+        if teach_btn or explanation_input:
+            has_match = bool(re.search(problem["heal_regex"], explanation_input, re.IGNORECASE))
+            if has_match:
                 st.session_state.gap_healed = True
-            else:
-                st.warning("⚠️ Leo: 'Hmm, I'm still confused! Exactly how many pounds are inside one full ton?'")
+            elif teach_btn:
+                st.warning("⚠️ Leo: 'Hmm, I'm still confused! Can you specify the exact conversion rule?'")
 
         if st.session_state.gap_healed:
             st.markdown(f"""
@@ -541,7 +558,7 @@ with left_col:
                     <span>🎉</span> <b>Ghost Gap Healed! Prerequisite Mastered!</b>
                 </div>
                 <div style="color: #065F46; font-size: 0.95rem; line-height: 1.5; margin-bottom: 10px;">
-                    <b>Status:</b> 🟢 <code>4.MD.A.1_TON_CONVERSION: HEALED</code><br/>
+                    <b>Status:</b> 🟢 <code>{problem['target_standard']}: HEALED</code><br/>
                     By articulating the rule to Leo, you solidified the mental model through the <b>Protégé Effect</b>!
                 </div>
                 <div style="background: white; border-radius: 8px; padding: 12px; border: 1px solid #A7F3D0; color: #047857; font-size: 0.95rem;">
@@ -575,7 +592,7 @@ with right_col:
     # Scaffolding Reveal Action Buttons
     col_wb1, col_wb2, col_nb = st.columns(3)
     with col_wb1:
-        if st.button("🔍 Reveal WB1 (Tons → lbs)", use_container_width=True):
+        if st.button("🔍 Reveal WB1 (Unit Rule)", use_container_width=True):
             st.session_state.show_wb1 = not st.session_state.show_wb1
     with col_wb2:
         if st.button("🎯 Reveal WB2 (Answer)", use_container_width=True):
@@ -595,7 +612,7 @@ with right_col:
                 {problem['wb1']}
             </div>
             <div style="font-size: 0.85rem; color: #475569; margin-top: 4px;">
-                💡 <b>Prerequisite Anchor:</b> 1 US Customary Ton is strictly 2,000 lb. Half of 2,000 is 1,000 lb.
+                💡 <b>Prerequisite Anchor:</b> Anchor conversion rule before proceeding to subtraction or comparison.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -611,10 +628,15 @@ with right_col:
                 {problem['wb2']}
             </div>
             <div style="font-size: 0.85rem; color: #475569; margin-top: 4px;">
-                ✅ <b>Correct Grade 6 Calculation:</b> {problem['correct_wb2_math']}
+                ✅ <b>Correct Calculation:</b> {problem['correct_wb2_math']}
             </div>
         </div>
         """, unsafe_allow_html=True)
+
+    # Option to view Whiteboard Solution Guide image if available
+    if problem.get("solution_image_file") and os.path.exists(problem["solution_image_file"]):
+        if st.checkbox("📖 View Whiteboard Teacher Solution Guide", value=False):
+            st.image(problem["solution_image_file"], caption="Step-by-Step Whiteboard Solution Guide", use_container_width=True)
 
     # NANO BANANA VISUAL AID DIAGRAM
     if st.session_state.show_nano_banana:
@@ -623,72 +645,106 @@ with right_col:
             <div style="font-weight: 700; color: #B45309; display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                 <span>🍌</span> Nano Banana Educational Visual Aid (Gemini Vision Model)
             </div>
-            <div style="font-size: 0.82rem; color: #78350F; margin-bottom: 10px;">
-                High-clarity visual diagram demonstrating <b>1 Ton = 2,000 lb</b> partitioned into two <b>1,000 lb</b> cargo crates.
-            </div>
         """, unsafe_allow_html=True)
 
-        # SVG High-Precision Classroom Diagram
-        svg_diagram = """
-        <svg viewBox="0 0 760 320" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="background:#0F172A; border-radius: 10px; font-family: 'Inter', sans-serif;">
-            <!-- Outer Ton Container -->
-            <rect x="30" y="30" width="700" height="90" rx="10" fill="#1E293B" stroke="#6366F1" stroke-width="3" stroke-dasharray="6,4" />
-            <text x="50" y="65" fill="#C7D2FE" font-size="16" font-weight="700" letter-spacing="1">WHOLE COMMERCIAL CARGO LOT</text>
-            <text x="50" y="95" fill="#38BDF8" font-size="24" font-weight="800">1 US TON = 2,000 LBS</text>
-            <text x="540" y="80" fill="#94A3B8" font-size="14">⚖️ Scale Benchmark</text>
+        if problem["id"] == "Q.05":
+            # Volume visual diagram for Gallons vs Quarts
+            svg_diagram = """
+            <svg viewBox="0 0 760 280" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="background:#0F172A; border-radius: 10px; font-family: 'Inter', sans-serif;">
+                <!-- 16 Quarts Barrel -->
+                <rect x="40" y="30" width="220" height="200" rx="14" fill="#EAB308" stroke="#CA8A04" stroke-width="4"/>
+                <text x="70" y="70" fill="#713F12" font-size="16" font-weight="800">BARREL OPTION</text>
+                <text x="70" y="115" fill="#1E293B" font-size="28" font-weight="800">16 QUARTS</text>
+                <text x="70" y="150" fill="#854D0E" font-size="14">Single Fuel Drum</text>
+                <text x="70" y="195" fill="#422006" font-size="13" font-weight="700">Total: 16 Quarts</text>
 
-            <!-- Down Arrow -->
-            <path d="M 380 125 L 380 155 M 370 145 L 380 155 L 390 145" stroke="#F59E0B" stroke-width="4" stroke-linecap="round" fill="none"/>
-            <text x="395" y="146" fill="#FDE68A" font-size="12" font-weight="600">Equal 1/2 Split</text>
+                <!-- Equal Sign -->
+                <text x="310" y="145" fill="#38BDF8" font-size="44" font-weight="900">=</text>
+                <text x="300" y="175" fill="#94A3B8" font-size="12" font-weight="600">EQUAL VOLUME</text>
 
-            <!-- Split Crates -->
-            <!-- Crate 1 -->
-            <rect x="30" y="165" width="335" height="110" rx="10" fill="#1E3A8A" stroke="#3B82F6" stroke-width="3" />
-            <text x="50" y="200" fill="#93C5FD" font-size="15" font-weight="700">📦 LOADED CRATE (1/2 TON)</text>
-            <text x="50" y="235" fill="#FFFFFF" font-size="26" font-weight="800">1,000 LBS</text>
-            <text x="50" y="260" fill="#4ADE80" font-size="12" font-weight="600">✅ 2,000 ÷ 2 = 1,000 lb</text>
+                <!-- 4 Gallons (4 x 4 quarts) -->
+                <g transform="translate(390, 30)">
+                    <rect x="0" y="0" width="70" height="90" rx="8" fill="#38BDF8" stroke="#0284C7" stroke-width="2"/>
+                    <text x="14" y="45" fill="#0C4A6E" font-size="14" font-weight="800">1 GAL</text>
+                    <text x="10" y="70" fill="#FFFFFF" font-size="11" font-weight="700">4 quarts</text>
 
-            <!-- Crate 2 -->
-            <rect x="395" y="165" width="335" height="110" rx="10" fill="#1E3A8A" stroke="#3B82F6" stroke-width="3" />
-            <text x="415" y="200" fill="#93C5FD" font-size="15" font-weight="700">📦 REMAINING HALF (1/2 TON)</text>
-            <text x="415" y="235" fill="#FFFFFF" font-size="26" font-weight="800">1,000 LBS</text>
-            <text x="415" y="260" fill="#4ADE80" font-size="12" font-weight="600">✅ 2,000 ÷ 2 = 1,000 lb</text>
+                    <rect x="85" y="0" width="70" height="90" rx="8" fill="#38BDF8" stroke="#0284C7" stroke-width="2"/>
+                    <text x="99" y="45" fill="#0C4A6E" font-size="14" font-weight="800">1 GAL</text>
+                    <text x="95" y="70" fill="#FFFFFF" font-size="11" font-weight="700">4 quarts</text>
 
-            <!-- Misconception Callout Footer -->
-            <rect x="30" y="285" width="700" height="28" rx="6" fill="#7F1D1D" />
-            <text x="45" y="304" fill="#FECACA" font-size="12" font-weight="700">❌ COMMON GHOST MISTAKE:</text>
-            <text x="235" y="304" fill="#FFFFFF" font-size="12">Thinking 1 ton = 1,000 lb (metric kilogram confusion) which causes the false 500 lb answer!</text>
-        </svg>
-        """
+                    <rect x="170" y="0" width="70" height="90" rx="8" fill="#38BDF8" stroke="#0284C7" stroke-width="2"/>
+                    <text x="184" y="45" fill="#0C4A6E" font-size="14" font-weight="800">1 GAL</text>
+                    <text x="180" y="70" fill="#FFFFFF" font-size="11" font-weight="700">4 quarts</text>
+
+                    <rect x="255" y="0" width="70" height="90" rx="8" fill="#38BDF8" stroke="#0284C7" stroke-width="2"/>
+                    <text x="269" y="45" fill="#0C4A6E" font-size="14" font-weight="800">1 GAL</text>
+                    <text x="265" y="70" fill="#FFFFFF" font-size="11" font-weight="700">4 quarts</text>
+
+                    <rect x="0" y="110" width="325" height="40" rx="8" fill="#1E293B" stroke="#6366F1" stroke-width="2"/>
+                    <text x="15" y="135" fill="#A5F3FC" font-size="14" font-weight="700">4 Gallons × 4 = 16 Quarts Total</text>
+                </g>
+
+                <!-- Footer Callout -->
+                <rect x="40" y="245" width="675" height="25" rx="6" fill="#14532D"/>
+                <text x="55" y="262" fill="#86EFAC" font-size="12" font-weight="700">✅ CONCLUSION:</text>
+                <text x="160" y="262" fill="#FFFFFF" font-size="12">16 quarts is identical in quantity to 4 gallons. Both options offer the same deal!</text>
+            </svg>
+            """
+        else:
+            # Cargo ton split diagram for Q.01 / Q.02
+            svg_diagram = """
+            <svg viewBox="0 0 760 300" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="background:#0F172A; border-radius: 10px; font-family: 'Inter', sans-serif;">
+                <rect x="30" y="25" width="700" height="80" rx="10" fill="#1E293B" stroke="#6366F1" stroke-width="3" stroke-dasharray="6,4" />
+                <text x="50" y="55" fill="#C7D2FE" font-size="15" font-weight="700" letter-spacing="1">WHOLE COMMERCIAL CARGO LOT</text>
+                <text x="50" y="85" fill="#38BDF8" font-size="22" font-weight="800">1 US TON = 2,000 LBS</text>
+                <text x="540" y="70" fill="#94A3B8" font-size="14">⚖️ Scale Benchmark</text>
+
+                <path d="M 380 110 L 380 135 M 370 125 L 380 135 L 390 125" stroke="#F59E0B" stroke-width="4" stroke-linecap="round" fill="none"/>
+
+                <rect x="30" y="145" width="335" height="100" rx="10" fill="#1E3A8A" stroke="#3B82F6" stroke-width="3" />
+                <text x="50" y="175" fill="#93C5FD" font-size="14" font-weight="700">📦 LOADED (1/2 TON)</text>
+                <text x="50" y="210" fill="#FFFFFF" font-size="24" font-weight="800">1,000 LBS</text>
+                <text x="50" y="235" fill="#4ADE80" font-size="12" font-weight="600">✅ 2,000 ÷ 2 = 1,000 lb</text>
+
+                <rect x="395" y="145" width="335" height="100" rx="10" fill="#1E3A8A" stroke="#3B82F6" stroke-width="3" />
+                <text x="415" y="175" fill="#93C5FD" font-size="14" font-weight="700">📦 REMAINING (1/2 TON)</text>
+                <text x="415" y="210" fill="#FFFFFF" font-size="24" font-weight="800">1,000 LBS</text>
+                <text x="415" y="235" fill="#4ADE80" font-size="12" font-weight="600">✅ 2,000 ÷ 2 = 1,000 lb</text>
+
+                <rect x="30" y="260" width="700" height="25" rx="6" fill="#7F1D1D" />
+                <text x="45" y="277" fill="#FECACA" font-size="11" font-weight="700">❌ COMMON GHOST MISTAKE:</text>
+                <text x="220" y="277" fill="#FFFFFF" font-size="11">Thinking 1 ton = 1,000 lb causing the false 500 lb answer!</text>
+            </svg>
+            """
         st.markdown(svg_diagram, unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
     # ULTRA-RESPONSIVE INTERACTIVE FREEHAND DRAWING CANVAS
     st.markdown("#### ✍️ Freehand Stylus & Math Canvas")
 
-    canvas_html = """
+    canvas_html = f"""
     <!DOCTYPE html>
     <html>
     <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-      * { box-sizing: border-box; }
-      body {
+      * {{ box-sizing: border-box; }}
+      body {{
         margin: 0;
         padding: 0;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         user-select: none;
         -webkit-user-select: none;
         background: transparent;
-      }
-      #board-wrapper {
+      }}
+      #board-wrapper {{
         border: 2px solid #3B82F6;
         border-radius: 12px;
         background: #FFFFFF;
         box-shadow: 0 4px 16px rgba(0,0,0,0.06);
         overflow: hidden;
-      }
-      .toolbar {
+      }}
+      .toolbar {{
         background: #F8FAFC;
         border-bottom: 2px solid #E2E8F0;
         padding: 8px 12px;
@@ -696,8 +752,8 @@ with right_col:
         flex-wrap: wrap;
         align-items: center;
         gap: 8px;
-      }
-      .tool-btn {
+      }}
+      .tool-btn {{
         border: 1px solid #CBD5E1;
         background: white;
         border-radius: 6px;
@@ -709,41 +765,41 @@ with right_col:
         align-items: center;
         gap: 4px;
         transition: all 0.15s ease;
-      }
-      .tool-btn:hover {
+      }}
+      .tool-btn:hover {{
         background: #EFF6FF;
         border-color: #3B82F6;
-      }
-      .tool-btn.active {
+      }}
+      .tool-btn.active {{
         background: #DBEAFE;
         border-color: #2563EB;
         color: #1D4ED8;
-      }
-      .color-dot {
+      }}
+      .color-dot {{
         width: 24px;
         height: 24px;
         border-radius: 50%;
         cursor: pointer;
         border: 2px solid #E2E8F0;
         transition: transform 0.1s, border-color 0.1s;
-      }
-      .color-dot:hover {
+      }}
+      .color-dot:hover {{
         transform: scale(1.15);
-      }
-      .color-dot.active {
+      }}
+      .color-dot.active {{
         border-color: #0F172A;
         box-shadow: 0 0 0 2px #3B82F6;
         transform: scale(1.18);
-      }
-      #paintCanvas {
+      }}
+      #paintCanvas {{
         display: block;
         width: 100%;
         height: 380px;
         background-color: #FFFFFF;
         touch-action: none;
         cursor: crosshair;
-      }
-      .status-bar {
+      }}
+      .status-bar {{
         background: #EFF6FF;
         color: #1E40AF;
         padding: 5px 12px;
@@ -752,7 +808,7 @@ with right_col:
         border-bottom: 1px solid #DBEAFE;
         display: flex;
         justify-content: space-between;
-      }
+      }}
     </style>
     </head>
     <body>
@@ -776,8 +832,8 @@ with right_col:
         <div style="width: 1px; height: 20px; background: #CBD5E1; margin: 0 2px;"></div>
         
         <span style="font-size: 11px; font-weight: 700; color: #475569;">STAMPS:</span>
-        <button class="tool-btn" onclick="stampText('1 ton = 2,000 lb', '#2563EB')">📝 1 ton = 2,000 lb</button>
-        <button class="tool-btn" onclick="stampText('1/2 ton = 1,000 lb', '#16A34A')">📦 1/2 ton = 1,000 lb</button>
+        <button class="tool-btn" onclick="stampText('{problem['wb1'].split('⟹')[0].strip()}', '#2563EB')">📝 Step 1 Stamp</button>
+        <button class="tool-btn" onclick="stampText('Equal Volume!', '#16A34A')">📦 Solution Stamp</button>
         
         <button class="tool-btn" onclick="clearCanvas()" style="margin-left: auto; background: #FEE2E2; color: #DC2626; border-color: #FCA5A5;">🗑️ Clear</button>
       </div>
@@ -803,7 +859,7 @@ with right_col:
       let lastX = 0;
       let lastY = 0;
 
-      function drawBackgroundGrid() {
+      function drawBackgroundGrid() {{
         const w = canvas.width;
         const h = canvas.height;
         ctx.fillStyle = '#FFFFFF';
@@ -811,63 +867,62 @@ with right_col:
         
         ctx.strokeStyle = '#F1F5F9';
         ctx.lineWidth = 1;
-        for (let x = 0; x < w; x += 25) {
+        for (let x = 0; x < w; x += 25) {{
           ctx.beginPath();
           ctx.moveTo(x, 0);
           ctx.lineTo(x, h);
           ctx.stroke();
-        }
-        for (let y = 0; y < h; y += 25) {
+        }}
+        for (let y = 0; y < h; y += 25) {{
           ctx.beginPath();
           ctx.moveTo(0, y);
           ctx.lineTo(w, y);
           ctx.stroke();
-        }
-      }
+        }}
+      }}
 
-      function setupCanvasResolution() {
+      function setupCanvasResolution() {{
         const rect = canvas.getBoundingClientRect();
         canvas.width = rect.width || 700;
         canvas.height = rect.height || 380;
         drawBackgroundGrid();
-      }
+      }}
 
-      function getCoords(e) {
+      function getCoords(e) {{
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
-        return {
+        return {{
           x: (e.clientX - rect.left) * scaleX,
           y: (e.clientY - rect.top) * scaleY
-        };
-      }
+        }};
+      }}
 
-      function startPosition(e) {
+      function startPosition(e) {{
         e.preventDefault();
-        try { canvas.setPointerCapture(e.pointerId); } catch(err){}
+        try {{ canvas.setPointerCapture(e.pointerId); }} catch(err){{}}
         painting = true;
         const pos = getCoords(e);
         lastX = pos.x;
         lastY = pos.y;
         
-        // Immediate dot
         ctx.beginPath();
         const dotRadius = (isEraser ? currentWidth * 3 : currentWidth) / 2;
         ctx.arc(lastX, lastY, Math.max(dotRadius, 1.5), 0, Math.PI * 2);
         ctx.fillStyle = isEraser ? '#FFFFFF' : currentColor;
         ctx.fill();
         posIndicator.innerText = `Drawing...`;
-      }
+      }}
 
-      function endPosition(e) {
-        if (painting) {
+      function endPosition(e) {{
+        if (painting) {{
           painting = false;
-          try { canvas.releasePointerCapture(e.pointerId); } catch(err){}
+          try {{ canvas.releasePointerCapture(e.pointerId); }} catch(err){{}}
           posIndicator.innerText = 'Whiteboard Active';
-        }
-      }
+        }}
+      }}
 
-      function draw(e) {
+      function draw(e) {{
         if (!painting) return;
         e.preventDefault();
         const pos = getCoords(e);
@@ -883,43 +938,41 @@ with right_col:
         
         lastX = pos.x;
         lastY = pos.y;
-      }
+      }}
 
-      // Pointer events for unified mouse, stylus, touch
       canvas.addEventListener('pointerdown', startPosition);
       canvas.addEventListener('pointermove', draw);
       canvas.addEventListener('pointerup', endPosition);
       canvas.addEventListener('pointercancel', endPosition);
       canvas.addEventListener('pointerleave', endPosition);
 
-      // Explicit fallback for touch devices
-      canvas.addEventListener('touchstart', (e) => {
+      canvas.addEventListener('touchstart', (e) => {{
         e.preventDefault();
         const t = e.touches[0];
-        startPosition({
-          preventDefault: () => {},
+        startPosition({{
+          preventDefault: () => {{}},
           pointerId: 1,
           clientX: t.clientX,
           clientY: t.clientY
-        });
-      }, { passive: false });
+        }});
+      }}, {{ passive: false }});
 
-      canvas.addEventListener('touchmove', (e) => {
+      canvas.addEventListener('touchmove', (e) => {{
         e.preventDefault();
         const t = e.touches[0];
-        draw({
-          preventDefault: () => {},
+        draw({{
+          preventDefault: () => {{}},
           clientX: t.clientX,
           clientY: t.clientY
-        });
-      }, { passive: false });
+        }});
+      }}, {{ passive: false }});
 
-      canvas.addEventListener('touchend', (e) => {
+      canvas.addEventListener('touchend', (e) => {{
         e.preventDefault();
-        endPosition({ pointerId: 1 });
-      }, { passive: false });
+        endPosition({{ pointerId: 1 }});
+      }}, {{ passive: false }});
 
-      function setColor(color, element) {
+      function setColor(color, element) {{
         isEraser = false;
         currentColor = color;
         previousColor = color;
@@ -927,34 +980,34 @@ with right_col:
         if (element) element.classList.add('active');
         document.getElementById('eraserBtn').classList.remove('active');
         canvas.style.cursor = 'crosshair';
-      }
+      }}
 
-      function toggleEraser(btn) {
+      function toggleEraser(btn) {{
         isEraser = !isEraser;
-        if (isEraser) {
+        if (isEraser) {{
           btn.classList.add('active');
           document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
           canvas.style.cursor = 'cell';
-        } else {
+        }} else {{
           btn.classList.remove('active');
           setColor(previousColor, document.querySelector('.color-dot'));
-        }
-      }
+        }}
+      }}
 
-      function setSize(s, btn) {
+      function setSize(s, btn) {{
         currentWidth = s;
-        btn.parentElement.querySelectorAll('.tool-btn').forEach(b => {
+        btn.parentElement.querySelectorAll('.tool-btn').forEach(b => {{
           if (b.innerText.includes('px')) b.classList.remove('active');
-        });
+        }});
         btn.classList.add('active');
-      }
+      }}
 
-      function clearCanvas() {
+      function clearCanvas() {{
         drawBackgroundGrid();
         posIndicator.innerText = 'Board Cleared';
-      }
+      }}
 
-      function stampText(text, color) {
+      function stampText(text, color) {{
         const x = 30 + Math.random() * (canvas.width - 280);
         const y = 60 + Math.random() * (canvas.height - 120);
         
@@ -965,16 +1018,15 @@ with right_col:
         ctx.shadowBlur = 4;
         ctx.fillText(text, Math.max(x, 20), Math.max(y, 40));
         ctx.restore();
-        posIndicator.innerText = `Stamped: "${text}"`;
-      }
+        posIndicator.innerText = `Stamped: "${{text}}"`;
+      }}
 
-      // Initialize
       window.addEventListener('DOMContentLoaded', setupCanvasResolution);
       window.addEventListener('load', setupCanvasResolution);
       setTimeout(setupCanvasResolution, 150);
-      window.addEventListener('resize', () => {
+      window.addEventListener('resize', () => {{
         setTimeout(setupCanvasResolution, 150);
-      });
+      }});
     </script>
     </body>
     </html>
@@ -988,9 +1040,9 @@ st.markdown("---")
 with st.expander("🏆 Google AI Hackathon Pitch Deck & Quick-Reference Guide", expanded=False):
     st.markdown("""
     ### 🎤 60-Second Hackathon Elevator Pitch
-    > *"Judges, when middle schoolers get a word problem wrong, teachers usually assume they don't understand algebra or ratios. But in **80% of cases**, the mistake is a **Ghost Gap**—a forgotten 4th-grade prerequisite standard quietly haunting their working steps.*
+    > *"Judges, when middle schoolers get a multi-step word problem wrong, teachers usually assume they don't understand algebra or ratios. But in **80% of cases**, the mistake is a **Ghost Gap**—a forgotten 4th-grade prerequisite standard quietly haunting their working steps.*
     > 
-    > *Meet **GhostBug AI**. Powered by **Gemini 2.5 Flash** and modular **Google Agent Skills**, GhostBug AI doesn't just grade students—it isolates the exact invisible prerequisite misconception (like thinking 1 ton = 1,000 lb instead of 2,000 lb).*
+    > *Meet **GhostBug AI**. Powered by **Gemini 2.5 Flash** and modular **Google Agent Skills**, GhostBug AI doesn't just grade students—it isolates the exact invisible prerequisite misconception (like confusing gallons with quarts, or tons with metric kilograms).*
     > 
     > *Then, using the **Protégé Effect**, GhostBug spawns **Leo**, an AI classmate infected with the exact same bug on a deliberate variation. When the student steps up to teach Leo via live voice or text, the ghost gap heals permanently.*
     > 
