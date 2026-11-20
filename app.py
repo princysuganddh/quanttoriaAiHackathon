@@ -2345,30 +2345,25 @@ if st.session_state.quiz_completed and st.session_state.show_teacher_parent_revi
     </div>
     """, unsafe_allow_html=True)
 
-    # 1. Message Addressed Directly to Teacher / Parent
-    letter_html = tp_brief["letter"].replace("\n\n", "<br/><br/>").replace("\n", "<br/>")
-    st.markdown(f"""
-    <div style="background: #FFFBEB; border: 2px solid #F59E0B; border-left: 8px solid #D97706; border-radius: 14px; padding: 20px 24px; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.14);">
-        <div style="font-size: 1.12rem; font-weight: 800; color: #92400E; margin-bottom: 10px;">
-            💌 AI Message Addressed to Teacher / Parent
-        </div>
-        <div style="color: #451A03; font-size: 0.97rem; line-height: 1.65;">
-            {letter_html}
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # 1. Compact Top Row: Short AI Message to Teacher/Parent + 4-Domain Cognitive Profile Bars
+    tp_top1, tp_top2 = st.columns([1.35, 1], gap="large")
+    with tp_top1:
+        letter_html = tp_brief["letter"].replace("\n\n", "<br/><br/>").replace("\n", "<br/>")
+        st.markdown(
+            f'<div style="background:#FFFBEB; border:2px solid #F59E0B; border-left:7px solid #D97706; border-radius:14px; padding:16px 20px; height:100%;">'
+            f'<div style="font-size:1.05rem; font-weight:800; color:#92400E; margin-bottom:8px;">💌 Message to Teacher / Parent</div>'
+            f'<div style="color:#451A03; font-size:0.9rem; line-height:1.58;">{letter_html}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
-    tp_left, tp_right = st.columns([1.15, 1], gap="large")
-
-    with tp_left:
-        # 2. Pattern Analyzed by AI
-        st.markdown("### 🔬 Pattern Analyzed by AI (Cognitive & Psychometric Synthesis)")
+    with tp_top2:
         bars_html = ""
         for d_name, d_score in st.session_state.cognitive_scores.items():
             b_col = "#34D399" if d_score >= 80 else ("#FBBF24" if d_score >= 60 else "#F87171")
             bars_html += (
                 f'<div style="margin-bottom:8px;">'
-                f'<div style="display:flex; justify-content:space-between; font-size:0.84rem; font-weight:700; color:#E0E7FF;">'
+                f'<div style="display:flex; justify-content:space-between; font-size:0.82rem; font-weight:700; color:#E0E7FF;">'
                 f'<span>{d_name}</span><span>{d_score}%</span></div>'
                 f'<div style="background:rgba(255,255,255,0.12); border-radius:10px; height:8px; overflow:hidden; margin-top:3px;">'
                 f'<div style="width:{d_score}%; height:100%; background:{b_col}; border-radius:10px;"></div>'
@@ -2376,124 +2371,63 @@ if st.session_state.quiz_completed and st.session_state.show_teacher_parent_revi
             )
 
         st.markdown(
-            f'<div class="psycho-card">'
-            f'<div class="psycho-title">📊 Overarching Pattern &amp; 4-Domain Cognitive Profile</div>'
-            f'<div class="insight-box" style="margin-top:0; margin-bottom:14px;">'
-            f'<b>🎯 Pattern Analyzed:</b> {tp_brief["pattern_summary"]}'
-            f'</div>'
+            f'<div class="psycho-card" style="margin:0; height:100%;">'
+            f'<div class="psycho-title" style="margin-bottom:10px;">📊 4-Domain Cognitive Profile</div>'
             f'{bars_html}'
             f'</div>',
             unsafe_allow_html=True,
         )
 
-        # 3. Chronological Log of Every Mistake Made Until Correct Answer + AI Reasons
-        st.markdown("### 📝 Every Mistake Made Before Entering Correct Answer & AI's Reasons")
-        if st.session_state.session_error_log:
-            for idx, entry in enumerate(st.session_state.session_error_log, 1):
-                q_meta = QUIZ_QUESTIONS[entry["question_id"]]
-                solved_badge = (
-                    "<span style='background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:10px;font-size:0.74rem;font-weight:700;'>✅ Later Solved Correctly</span>"
-                    if entry["question_id"] in st.session_state.solved_questions
-                    else "<span style='background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:10px;font-size:0.74rem;font-weight:700;'>⏳ Still Solving</span>"
-                )
-                steps_line = (
-                    f"<br/><b>Student Working Written:</b> <code>{entry['student_steps']}</code>"
-                    if entry.get("student_steps")
-                    else ""
-                )
-                st.markdown(f"""
-                <div style="background:#FFFFFF; border:2px solid #FCA5A5; border-left:6px solid #EF4444; border-radius:12px; padding:14px 16px; margin-bottom:12px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:6px;">
-                        <span style="font-weight:800; color:#991B1B;">Mistake #{idx} • {q_meta['short_label']} (Attempt #{entry.get('attempt_num', 1)})</span>
-                        {solved_badge}
-                    </div>
-                    <div style="font-size:0.9rem; color:#1E293B; line-height:1.55;">
-                        <b>Student Entered:</b> <code style="background:#FEE2E2;color:#991B1B;padding:2px 6px;border-radius:4px;">{entry['wrong_answer']}</code>
-                        &nbsp;→&nbsp; <b>Correct Answer:</b> <code style="background:#D1FAE5;color:#065F46;padding:2px 6px;border-radius:4px;">{q_meta['correct_answer_display']}</code>{steps_line}<br/>
-                        <b>Psychometric Pattern:</b> <span style="color:#B91C1C;font-weight:700;">{entry['pattern']}</span> &nbsp;|&nbsp;
-                        <b>Taxed Cognitive Domain:</b> <span style="color:#4338CA;font-weight:700;">{entry.get('domain', 'Schema Encoding')}</span><br/>
-                        <b>Cognitive & Psychometric Reason:</b> {entry.get('root_cause', '')}<br/>
-                        <b>Working-Memory Load & Signal:</b> {entry.get('cognitive_load', 'MEDIUM')} · <i>{entry.get('affective_signal', '')}</i>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+    # 2. ONE Small Crisp Paragraph Per Question (Pattern + Cognitive + Psychometric Combined!)
+    st.markdown("### 📝 Per-Question Cognitive & Psychometric Summary")
+    for qid in QUIZ_ORDER:
+        qobj = QUIZ_QUESTIONS[qid]
+        q_errs = [e for e in st.session_state.session_error_log if e["question_id"] == qid]
+
+        if not q_errs:
+            st.markdown(
+                f'<div style="background:#F0FDF4; border:1.5px solid #86EFAC; border-left:6px solid #10B981; border-radius:12px; padding:12px 16px; margin-bottom:10px;">'
+                f'<div style="font-weight:800; color:#065F46; font-size:0.94rem; margin-bottom:4px;">✅ {qobj["short_label"]} &nbsp;·&nbsp; Solved on First Try</div>'
+                f'<div style="color:#14532D; font-size:0.88rem; line-height:1.5;">'
+                f'The student accurately applied <b>{qobj["concept_rule"]}</b> and reached <b>{qobj["correct_answer_display"]}</b> without any cognitive slip, showing strong schema recall, attentive unit reading, and steady working-memory control on this problem.'
+                f'</div></div>',
+                unsafe_allow_html=True,
+            )
         else:
-            st.success("🌟 No mistakes have been recorded yet! Once the student makes any wrong attempt (or finishes the quiz), every attempt and cognitive reason appears here.")
+            tried_str = ", ".join(f"'{e['wrong_answer']}'" for e in q_errs)
+            patterns_str = ", ".join(dict.fromkeys(e["pattern"] for e in q_errs))
+            domains_str = ", ".join(dict.fromkeys(e.get("domain", "Schema Encoding") for e in q_errs))
+            last_reason = q_errs[-1].get("root_cause", "")
+            tip_short = q_errs[-1].get("parent_teacher_tip", "")
+            st.markdown(
+                f'<div style="background:#FFFFFF; border:1.5px solid #FCA5A5; border-left:6px solid #EF4444; border-radius:12px; padding:12px 16px; margin-bottom:10px;">'
+                f'<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:5px;">'
+                f'<span style="font-weight:800; color:#991B1B; font-size:0.94rem;">🔎 {qobj["short_label"]} &nbsp;·&nbsp; {len(q_errs)} Mistake{"s" if len(q_errs) != 1 else ""} Before Solving</span>'
+                f'<span style="background:#EEF2FF; color:#4338CA; padding:2px 9px; border-radius:10px; font-size:0.75rem; font-weight:700;">{patterns_str}</span>'
+                f'</div>'
+                f'<div style="color:#1E293B; font-size:0.88rem; line-height:1.55;">'
+                f'Before reaching <b>{qobj["correct_answer_display"]}</b>, the student entered <b>{tried_str}</b>, signaling a <b>{patterns_str}</b> pattern in <b>{domains_str}</b>. '
+                f'{last_reason} After receiving the blinking cue, the student self-corrected and locked in <b>{qobj["concept_rule"]}</b>. '
+                f'<span style="color:#0F766E;"><b>Tip:</b> {tip_short}</span>'
+                f'</div></div>',
+                unsafe_allow_html=True,
+            )
 
-        # 3b. AI Step-by-Step Observations & Overall Thinking Pattern Study
-        if st.session_state.step_observations:
-            st.markdown("### 👁️ AI Step-by-Step Observation & Overall Thinking Pattern Study")
-            for o_idx, ob in enumerate(st.session_state.step_observations, 1):
-                q_m = QUIZ_QUESTIONS[ob["question_id"]]
-                s1_icon = "✅" if ob.get("step1_ok") else "⚠️"
-                s2_icon = "✅" if ob.get("step2_ok") else "⚠️"
-                st.markdown(f"""
-                <div class="observer-card">
-                    <div style="font-weight: 800; color: #0E7490; font-size: 0.96rem; margin-bottom: 6px;">
-                        👁️ Observation #{o_idx} • {q_m['short_label']} &nbsp;—&nbsp;
-                        <span style="background:#0891B2;color:white;padding:2px 9px;border-radius:10px;font-size:0.76rem;">{ob.get('thinking_style', '')}</span>
-                    </div>
-                    <div style="font-size: 0.87rem; color: #164E63; line-height: 1.55;">
-                        <b>{s1_icon} Step 1 Observed:</b> <code>{ob.get('step1_text') or '(blank)'}</code><br/>
-                        <b>{s2_icon} Step 2 Observed:</b> <code>{ob.get('step2_text') or '(blank)'}</code><br/>
-                        <b>Cue Responsiveness:</b> {ob.get('cue_responsiveness', '')}<br/>
-                        <b>Overall Thinking Pattern Study:</b> {ob.get('overall_study', '')}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-
-        # 4. Recommended Action Plan for Teacher / Parent
-        st.markdown("### 🎯 Recommended Action Plan for Teacher / Parent")
-        for step_i, act in enumerate(tp_brief.get("action_plan", []), 1):
-            st.markdown(f"""
-            <div style="background:#ECFDF5; border:1px solid #A7F3D0; border-left:5px solid #10B981; border-radius:10px; padding:10px 14px; margin-bottom:8px; color:#065F46; font-size:0.9rem;">
-                <b>Step {step_i}:</b> {act}
-            </div>
-            """, unsafe_allow_html=True)
-
-    with tp_right:
-        # 5. All Possible Mistakes Matrix Across All 4 Questions
-        st.markdown("### 🗺️ All Possible Mistakes Matrix (Student Traps vs Avoided)")
-        st.caption("Shows every classic psychometric mistake a student can make on each question and flags the exact ones your student hit before entering the correct answer:")
-
-        triggered_ids = {e.get("matched_trap_id") for e in st.session_state.session_error_log if e.get("matched_trap_id")}
-
-        for qid in QUIZ_ORDER:
-            qobj = QUIZ_QUESTIONS[qid]
-            q_errs = [e for e in st.session_state.session_error_log if e["question_id"] == qid]
-            q_status = "✅ Solved" if qid in st.session_state.solved_questions else "⏳ Not Solved Yet"
-            with st.expander(
-                f"{qobj['short_label']} — {q_status} ({len(q_errs)} mistake{'s' if len(q_errs) != 1 else ''} logged)",
-                expanded=(len(q_errs) > 0 or qid == QUIZ_ORDER[st.session_state.current_q_idx]),
-            ):
-                st.markdown(f"**Core Concept Rule:** `{qobj['concept_rule']}` · **Correct Answer:** `{qobj['correct_answer_display']}`")
+    # 3. Optional Compact Expander: All Possible Mistakes Matrix + Action Plan
+    triggered_ids = {e.get("matched_trap_id") for e in st.session_state.session_error_log if e.get("matched_trap_id")}
+    with st.expander("🗺️ View All Possible Mistakes Matrix & Home/Classroom Tips", expanded=False):
+        m_c1, m_c2 = st.columns([1.3, 1], gap="large")
+        with m_c1:
+            for qid in QUIZ_ORDER:
+                qobj = QUIZ_QUESTIONS[qid]
+                st.markdown(f"**{qobj['short_label']}** (`{qobj['concept_rule']}`):")
                 for pm in qobj.get("possible_mistakes", []):
-                    hit = pm["id"] in triggered_ids
-                    if hit:
-                        border_c = "#EF4444"
-                        bg_c = "#FEF2F2"
-                        badge_html = "<span style='background:#DC2626;color:white;padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:700;'>🔴 STUDENT HIT THIS MISTAKE</span>"
-                    elif qid in st.session_state.solved_questions:
-                        border_c = "#10B981"
-                        bg_c = "#F0FDF4"
-                        badge_html = "<span style='background:#059669;color:white;padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:700;'>✅ AVOIDED</span>"
-                    else:
-                        border_c = "#CBD5E1"
-                        bg_c = "#F8FAFC"
-                        badge_html = "<span style='background:#64748B;color:white;padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:700;'>⚪ POSSIBLE TRAP</span>"
-
-                    st.markdown(f"""
-                    <div style="background:{bg_c}; border:1.5px solid {border_c}; border-radius:10px; padding:10px 13px; margin-bottom:8px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:4px;">
-                            <span style="font-weight:700; color:#0F172A; font-size:0.86rem;">{pm['title']}</span>
-                            {badge_html}
-                        </div>
-                        <div style="font-size:0.82rem; color:#334155; line-height:1.45;">
-                            <b>Pattern:</b> <code>{pm['pattern']}</code> ({pm['domain']})<br/>
-                            <b>Why Students Make It:</b> {pm['cognitive_reason']}
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    tag = "🔴 **Triggered**" if pm["id"] in triggered_ids else "✅ Avoided"
+                    st.markdown(f"- {tag} — **{pm['title']}** (*{pm['pattern']}*): {pm['cognitive_reason']}")
+        with m_c2:
+            st.markdown("**🎯 Quick Action Steps for Teacher / Parent:**")
+            for step_i, act in enumerate(tp_brief.get("action_plan", []), 1):
+                st.markdown(f"{step_i}. {act}")
 
     st.markdown("---")
     if st.button("⬅️ Back to Quiz Complete Summary", type="primary", use_container_width=True, key="bottom_back_quiz"):
