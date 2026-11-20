@@ -1194,39 +1194,15 @@ CONGRATS_LINES = {
 }
 
 SOLUTION_SPEECH = {
-    "Q1": (
-        "Woohoo! That is correct! High five, Fuel Master! "
-        "Here is the magic formula to remember: 1 gallon equals 4 quarts. "
-        "Step 1: Multiply 4 gallons times 4, which gives 16 quarts. "
-        "Step 2: 16 quarts equals 16 quarts, so both options are equally viable! "
-        "Tap Next when you are ready for Mission 2!"
-    ),
-    "Q2": (
-        "Awesome job, Fire Chief! That is correct! "
-        "Remember our Sweet 16 formula: 1 pound equals 16 ounces. "
-        "Step 1: Convert 20 pounds to ounces by multiplying 20 times 16, which equals 320 ounces. "
-        "Step 2: Divide 320 ounces equally into 8 small buckets, giving 40 ounces in each bucket! "
-        "Tap Next to fly to Mission 3!"
-    ),
-    "Q3": (
-        "Yaaay! Cleared for takeoff, Captain Jet! That is correct! "
-        "Remember the Kilo formula: 1 kilometer equals 1,000 meters. "
-        "Step 1: Five tenths of 1,000 meters is half a kilometer, which equals 500 meters. "
-        "Step 2: Subtract the 100 meter maintenance area: 500 minus 100 equals 400 meters available for the planes! "
-        "Tap Next for our final mission!"
-    ),
-    "Q4": (
-        "Mega victory! You nailed the final mission! "
-        "Remember the heavy weight formula: 1 US ton equals 2,000 pounds. "
-        "Step 1: Half of 2,000 pounds equals 1,000 pounds already loaded. "
-        "Step 2: Subtract from the 1,300 pound cargo capacity: 1,300 minus 1,000 equals 300 pounds left! "
-        "Tap Finish to claim your Math Champion trophy!"
-    ),
+    "Q1": "Woohoo! That is correct! Remember the formula: 1 gallon equals 4 quarts!",
+    "Q2": "Awesome job! That is correct! Remember the formula: 1 pound equals 16 ounces!",
+    "Q3": "Yay! Cleared for takeoff! Remember the formula: 1 kilometer equals 1,000 meters!",
+    "Q4": "Mega victory! Remember the formula: 1 US ton equals 2,000 pounds!",
 }
 
 
 def strip_for_speech(text: str) -> str:
-    """Strip HTML tags, markdown markers, and emojis so Web Speech Synthesis reads smoothly."""
+    """Strip HTML tags, markdown markers, and emojis so speech reads smoothly."""
     clean = re.sub(r"<[^>]+>", " ", text or "")
     clean = re.sub(r"[`*_#]", "", clean)
     clean = re.sub(r"[^\x00-\x7F]+", " ", clean)
@@ -1235,54 +1211,30 @@ def strip_for_speech(text: str) -> str:
 
 
 @st.cache_data(show_spinner=False)
-def synthesize_nobita_style_mp3(clean_text: str) -> str:
-    """Generate a crystal-clear, playful youthful Nobita-style anime kid voice MP3 (base64) via edge-tts."""
-    try:
-        import asyncio
-        import edge_tts
-
-        async def _gen():
-            comm = edge_tts.Communicate(
-                clean_text,
-                voice="en-US-AnaNeural",  # Studio-quality youthful cartoon kid voice!
-                rate="-4%",               # Crisp, clear kid-friendly pace
-                pitch="+6Hz",             # Playful, expressive Nobita-inspired youthful tone
-            )
-            chunks = []
-            async for chunk in comm.stream():
-                if chunk["type"] == "audio":
-                    chunks.append(chunk["data"])
-            return b"".join(chunks)
-
-        try:
-            mp3_bytes = asyncio.run(_gen())
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            try:
-                mp3_bytes = loop.run_until_complete(_gen())
-            finally:
-                loop.close()
-
-        if mp3_bytes:
-            return base64.b64encode(mp3_bytes).decode("utf-8")
-    except Exception:
-        pass
+def load_prebaked_audio_b64(clip_filename: str) -> str:
+    """Instant 0ms load of pre-generated neural kid voice MP3 from assets/audio/ (never blocks or freezes UI!)."""
+    if not clip_filename:
+        return ""
+    path = os.path.join(ASSETS_DIR, "audio", clip_filename)
+    if os.path.exists(path):
+        with open(path, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
     return ""
 
 
-def render_cartoon_voice_player(spoken_text: str, enabled: bool, nonce: int, mood: str = "cue"):
-    """Speak cues, hints, or congratulations aloud in a crystal-clear Nobita-style anime kid voice + Replay pill."""
+def render_cartoon_voice_player(spoken_text: str, enabled: bool, nonce: int, mood: str = "cue", audio_clip: str = ""):
+    """Instant zero-lag voice player using pre-baked fast neural kid MP3s (zero network blocking!) + fast browser fallback."""
     if not spoken_text:
         return
     clean_speech = strip_for_speech(spoken_text)
     if not clean_speech:
         return
-    mp3_b64 = synthesize_nobita_style_mp3(clean_speech) if enabled else ""
+    mp3_b64 = load_prebaked_audio_b64(audio_clip) if (enabled and audio_clip) else ""
     js_text = json.dumps(clean_speech)
     bg = "#DCFCE7" if mood == "cheer" else "#FEF3C7"
     border = "#16A34A" if mood == "cheer" else "#EA580C"
     txt_col = "#14532D" if mood == "cheer" else "#9A3412"
-    label = "🧒 Nobi-Buddy is cheering for you!" if mood == "cheer" else "🧒 Nobi-Buddy has a funny clue for you!"
+    label = "🧒 Formula Voice Cheer!" if mood == "cheer" else "🧒 Nobi-Buddy Clue!"
     auto_js = "true" if enabled else "false"
     audio_tag = (
         f'<audio id="nobiAudio" preload="auto" src="data:audio/mpeg;base64,{mp3_b64}"></audio>'
@@ -1304,7 +1256,7 @@ def render_cartoon_voice_player(spoken_text: str, enabled: bool, nonce: int, moo
         background: {bg};
         border: 2px solid {border};
         border-radius: 30px;
-        padding: 6px 14px;
+        padding: 5px 14px;
         color: {txt_col};
         font-size: 13px;
         font-weight: 700;
@@ -1326,7 +1278,7 @@ def render_cartoon_voice_player(spoken_text: str, enabled: bool, nonce: int, moo
       {audio_tag}
       <div class="voice-pill">
         <span id="vStatus">{label}</span>
-        <button class="replay-btn" onclick="playBuddyVoice()">🔊 Replay Clear Voice</button>
+        <button class="replay-btn" onclick="playBuddyVoice()">🔊 Replay Formula Voice</button>
       </div>
       <script>
         const msgText = {js_text};
@@ -1339,13 +1291,13 @@ def render_cartoon_voice_player(spoken_text: str, enabled: bool, nonce: int, moo
           if (!('speechSynthesis' in window)) return;
           window.speechSynthesis.cancel();
           const u = new SpeechSynthesisUtterance(msgText);
-          u.pitch = 1.18;  // Natural clear youthful kid pitch (no chipmunk distortion!)
-          u.rate = 0.94;   // Crystal clear pace
+          u.pitch = 1.18;  // Clear youthful kid tone
+          u.rate = 1.08;   // Crisp, energetic speed (never slow!)
           u.volume = 1.0;
           const voices = window.speechSynthesis.getVoices();
           const pref = voices.find(v => /en/i.test(v.lang) && /(ana|aria|google us english|samantha|zira)/i.test(v.name));
           if (pref) u.voice = pref;
-          u.onstart = () => {{ statusEl.innerText = '🧒🎵 Speaking clearly...'; }};
+          u.onstart = () => {{ statusEl.innerText = '🧒🎵 Speaking...'; }};
           u.onend = () => {{ statusEl.innerText = '{label}'; }};
           window.speechSynthesis.speak(u);
         }}
@@ -1353,10 +1305,11 @@ def render_cartoon_voice_player(spoken_text: str, enabled: bool, nonce: int, moo
         function playBuddyVoice() {{
           if (audioEl) {{
             audioEl.currentTime = 0;
+            audioEl.playbackRate = 1.08;
             audioEl.onplay = () => {{ statusEl.innerText = '🧒🎵 Speaking...'; }};
             audioEl.onended = () => {{ statusEl.innerText = '{label}'; }};
             audioEl.play().catch(() => {{
-              statusEl.innerText = '🔊 Tap Replay to hear Nobi-Buddy!';
+              statusEl.innerText = '🔊 Tap Replay to hear!';
             }});
           }} else {{
             speakFallbackClear();
@@ -1365,13 +1318,13 @@ def render_cartoon_voice_player(spoken_text: str, enabled: bool, nonce: int, moo
 
         if (shouldAuto && !window.sessionStorage.getItem(nonceKey)) {{
           window.sessionStorage.setItem(nonceKey, "1");
-          setTimeout(playBuddyVoice, 100);
+          playBuddyVoice();
         }}
       </script>
     </body>
     </html>
     """
-    components.html(voice_html, height=48)
+    components.html(voice_html, height=46)
 
 
 def render_speech_to_text_mic(qid: str, unit_label: str = ""):
@@ -2580,6 +2533,7 @@ if st.session_state.quiz_completed:
         enabled=st.session_state.voice_enabled,
         nonce=st.session_state.speech_nonce,
         mood="cheer",
+        audio_clip="victory.mp3",
     )
 
     # Child-friendly unlocked badges row
@@ -2741,12 +2695,13 @@ with left_col:
         </div>
         """, unsafe_allow_html=True)
 
-        # Speak congratulations + exact formula & solution steps aloud in crystal-clear Nobita-style kid voice!
+        # Speak ONLY the crisp, fast formula cheer from pre-baked local MP3 (0ms instant — zero freeze!)
         render_cartoon_voice_player(
             SOLUTION_SPEECH.get(current_qid, CONGRATS_LINES.get(current_qid, "Awesome job!")),
             enabled=st.session_state.voice_enabled,
             nonce=st.session_state.speech_nonce,
             mood="cheer",
+            audio_clip=f"formula_{current_qid}.mp3",
         )
 
         is_last_q = st.session_state.current_q_idx >= len(QUIZ_ORDER) - 1
@@ -2786,6 +2741,7 @@ with left_col:
                 enabled=st.session_state.voice_enabled,
                 nonce=st.session_state.speech_nonce,
                 mood="cue",
+                audio_clip=f"cue_{current_qid}.mp3",
             )
 
         # Speech-to-Text Voice Input Widget (Talk to Buddy!)
