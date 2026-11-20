@@ -2672,22 +2672,22 @@ current_qid = QUIZ_ORDER[st.session_state.current_q_idx]
 problem = QUIZ_QUESTIONS[current_qid]
 
 # ==========================================
-# WIDE QUESTION-FIRST TWO-PANEL LAYOUT (BIG & CLEAR FOR KIDS!)
+# SIDE-BY-SIDE LAYOUT: BIG QUESTION ON LEFT • ANSWER + WHITEBOARD ON RIGHT
+# (So the blinking hint on the question image NEVER scrolls out of view!)
 # ==========================================
-left_col, right_col = st.columns([1.45, 1], gap="medium")
+left_col, right_col = st.columns([1.35, 1], gap="large")
 
 # ==========================================
-# LEFT PANEL: Question Image + Solution Steps & Next Button (on Correct) OR Cue + Answer Box
+# LEFT PANEL: BIG QUESTION IMAGE (STAYS LOCKED IN VIEW WITH BLINKING HINT!)
 # ==========================================
 with left_col:
-    st.markdown(f"""
-    <div class="question-frame-header">
-        <span>🖼️ Mission {problem['num']} of 4 &nbsp;•&nbsp; {problem['short_label']}</span>
-        <span style="background: #FFFFFF; color: #4338CA; padding: 2px 10px; border-radius: 12px; font-size: 0.78rem; border: 1px solid #C7D2FE;">
-            {problem['topic']}
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="question-frame-header">'
+        f'<span>🖼️ Mission {problem["num"]} of 4 &nbsp;•&nbsp; {problem["short_label"]}</span>'
+        f'<span style="background:#FFFFFF; color:#4338CA; padding:2px 10px; border-radius:12px; font-size:0.78rem; border:1px solid #C7D2FE;">'
+        f'{problem["topic"]}</span></div>',
+        unsafe_allow_html=True,
+    )
 
     # Display Question Image — BLINKS & HIGHLIGHTS THE EXACT HINT AREA WHEN A MISTAKE IS MADE!
     if problem.get("image_file") and os.path.exists(problem["image_file"]):
@@ -2699,35 +2699,43 @@ with left_col:
     else:
         st.info(problem["question_text"])
 
+    # Gentle smooth scroll to top whenever a blinking hint activates so the child always sees it!
+    if st.session_state.diagnosis_triggered and not st.session_state.question_solved_pending_next:
+        components.html(
+            "<script>try { window.parent.scrollTo({top: 0, behavior: 'smooth'}); } catch(e){}</script>",
+            height=0,
+        )
+
+
+# ==========================================
+# RIGHT PANEL: ANSWER SECTION (TOP — SIDE-BY-SIDE WITH QUESTION!) + WHITEBOARD BELOW
+# ==========================================
+with right_col:
     # ==========================================================
-    # STATE A: QUESTION SOLVED → SHOW CONGRATS + SOLUTION STEPS & FORMULA + PIP VOICE + NEXT BUTTON!
+    # STATE A: QUESTION SOLVED → SHOW CONGRATS + SOLUTION STEPS & FORMULA + VOICE + NEXT BUTTON!
     # ==========================================================
     if st.session_state.question_solved_pending_next:
         if st.session_state.just_celebrated:
             st.balloons()
             st.session_state.just_celebrated = False
 
-        st.markdown(f"""
-        <div class="healed-alert-box" style="border-width: 3px;">
-            <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-                <span class="pip-mascot" style="width:46px;height:46px;font-size:1.7rem;">🐥</span>
-                <div>
-                    <div class="healed-alert-title" style="margin-bottom:2px;">🎉 THAT'S CORRECT!! AWESOME JOB!</div>
-                    <div style="color:#047857; font-size:0.9rem; font-weight:600;">
-                        Look at the magic formula & solution steps Pip is explaining before you click Next:
-                    </div>
-                </div>
-            </div>
-            <div style="background:#FFFFFF; border:2px solid #34D399; border-radius:12px; padding:14px 16px; color:#0F172A; font-size:0.93rem; line-height:1.65;">
-                <div style="background:#EEF2FF; color:#3730A3; display:inline-block; padding:3px 12px; border-radius:8px; font-weight:800; font-family:'Fira Code',monospace; margin-bottom:8px;">
-                    📐 Formula: {problem['concept_rule']}
-                </div><br/>
-                <b>① Step 1 (Apply Formula):</b> <span style="font-family:'Fira Code',monospace; color:#1D4ED8; font-weight:700;">{problem['wb1']}</span><br/>
-                <b>② Step 2 (Solve & Check):</b> <span style="font-family:'Fira Code',monospace; color:#047857; font-weight:700;">{problem['wb2']}</span><br/>
-                <b>✅ Final Answer:</b> <span style="background:#D1FAE5; color:#065F46; padding:2px 8px; border-radius:6px; font-weight:800;">{problem['correct_answer_display']}</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="healed-alert-box" style="border-width:3px; margin-top:0;">'
+            f'<div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">'
+            f'<span class="pip-mascot" style="width:46px;height:46px;font-size:1.7rem;">🐥</span>'
+            f'<div>'
+            f'<div class="healed-alert-title" style="margin-bottom:2px;">🎉 THAT\'S CORRECT!! AWESOME JOB!</div>'
+            f'<div style="color:#047857; font-size:0.9rem; font-weight:600;">Look at the formula &amp; solution steps before clicking Next:</div>'
+            f'</div></div>'
+            f'<div style="background:#FFFFFF; border:2px solid #34D399; border-radius:12px; padding:14px 16px; color:#0F172A; font-size:0.93rem; line-height:1.65;">'
+            f'<div style="background:#EEF2FF; color:#3730A3; display:inline-block; padding:3px 12px; border-radius:8px; font-weight:800; font-family:\'Fira Code\',monospace; margin-bottom:8px;">'
+            f'📐 Formula: {problem["concept_rule"]}</div><br/>'
+            f'<b>① Step 1 (Apply Formula):</b> <span style="font-family:\'Fira Code\',monospace; color:#1D4ED8; font-weight:700;">{problem["wb1"]}</span><br/>'
+            f'<b>② Step 2 (Solve &amp; Check):</b> <span style="font-family:\'Fira Code\',monospace; color:#047857; font-weight:700;">{problem["wb2"]}</span><br/>'
+            f'<b>✅ Final Answer:</b> <span style="background:#D1FAE5; color:#065F46; padding:2px 8px; border-radius:6px; font-weight:800;">{problem["correct_answer_display"]}</span>'
+            f'</div></div>',
+            unsafe_allow_html=True,
+        )
 
         # Speak ONLY the crisp, fast formula cheer from pre-baked local MP3 (0ms instant — zero freeze!)
         render_cartoon_voice_player(
@@ -2756,20 +2764,20 @@ with left_col:
                 st.rerun()
 
     # ==========================================================
-    # STATE B: STUDENT STILL SOLVING → SHOW BLINKING CUE (ON MISTAKE) + SPEECH-TO-TEXT + ANSWER BOX
+    # STATE B: STUDENT STILL SOLVING → FUNNY 2-LINER CUE (ON MISTAKE) + SPEECH-TO-TEXT + ANSWER BOX
     # ==========================================================
     else:
-        # ONLY show Pip's funny 2-liner age-friendly cue + Clear Kid Voice when a mistake is made!
+        # Show Pip's funny 2-liner cue right next to the blinking question image!
         if st.session_state.diagnosis_triggered and st.session_state.active_funny_cue:
-            st.markdown(f"""
-            <div class="funny-cue-box" style="display:flex; gap:12px; align-items:flex-start;">
-                <div class="pip-mascot">🐥</div>
-                <div>
-                    <div class="funny-cue-title">😜 Slow Down & Peek at the Blinking Hint Above!</div>
-                    <div class="funny-cue-text">{st.session_state.active_funny_cue}</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="funny-cue-box" style="display:flex; gap:12px; align-items:flex-start; margin-top:0;">'
+                f'<div class="pip-mascot">🐥</div>'
+                f'<div>'
+                f'<div class="funny-cue-title">😜 Slow Down &amp; Peek at the Blinking Hint on the Left!</div>'
+                f'<div class="funny-cue-text">{st.session_state.active_funny_cue}</div>'
+                f'</div></div>',
+                unsafe_allow_html=True,
+            )
             render_cartoon_voice_player(
                 st.session_state.active_funny_cue,
                 enabled=st.session_state.voice_enabled,
@@ -2785,7 +2793,7 @@ with left_col:
         # Answer Submission Box
         if problem["input_type"] == "mcq":
             student_answer = st.radio(
-                "Pick the right option from the picture above:",
+                "Pick the right option from the picture on the left:",
                 options=problem["options"],
                 index=None,
                 key=f"mcq_{current_qid}",
@@ -2806,10 +2814,10 @@ with left_col:
                 )
 
         student_steps = st.text_area(
-            "Optional — Jot down your quick math thought (or draw on the whiteboard!):",
+            "Optional — Jot down your quick math thought (or draw on the whiteboard below!):",
             value="",
             placeholder="e.g., How did you work it out?",
-            height=60,
+            height=58,
             key=f"steps_{current_qid}",
         )
 
@@ -2890,20 +2898,14 @@ with left_col:
                     update_cognitive_scores("error", domain=analysis.get("cognitive_domain_impact"))
                     st.rerun()
 
-
-# ==========================================
-# RIGHT PANEL: Classroom Whiteboard + Nano Banana + Stylus Canvas
-# ==========================================
-with right_col:
+    st.markdown("---")
     st.markdown(
-        '<div style="background:#FFFFFF; border:2px solid #CBD5E1; border-radius:14px; padding:14px 18px; margin-bottom:14px; box-shadow:0 4px 12px rgba(0,0,0,0.05);">'
+        '<div style="background:#FFFFFF; border:2px solid #CBD5E1; border-radius:14px; padding:12px 16px; margin-bottom:12px; box-shadow:0 4px 12px rgba(0,0,0,0.05);">'
         '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">'
-        '<div style="font-family:\'Fredoka\',cursive; font-size:1.3rem; color:#1E293B; font-weight:700; display:flex; align-items:center; gap:8px;">'
+        '<div style="font-family:\'Fredoka\',cursive; font-size:1.2rem; color:#1E293B; font-weight:700; display:flex; align-items:center; gap:8px;">'
         '<span>📋</span> Interactive Classroom Whiteboard</div>'
-        '<span style="background:#EEF2FF; color:#4F46E5; font-size:0.76rem; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid #C7D2FE;">'
+        '<span style="background:#EEF2FF; color:#4F46E5; font-size:0.74rem; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid #C7D2FE;">'
         'Live Stylus &amp; Math Canvas</span></div>'
-        '<div style="font-size:0.84rem; color:#64748B; margin-top:4px;">'
-        'Work out your calculations on the board below, or reveal step-by-step hints &amp; visual diagrams:</div>'
         '</div>',
         unsafe_allow_html=True,
     )
