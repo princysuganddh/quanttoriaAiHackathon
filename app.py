@@ -2366,25 +2366,25 @@ if st.session_state.quiz_completed and st.session_state.show_teacher_parent_revi
         bars_html = ""
         for d_name, d_score in st.session_state.cognitive_scores.items():
             b_col = "#34D399" if d_score >= 80 else ("#FBBF24" if d_score >= 60 else "#F87171")
-            bars_html += f"""
-            <div style="margin-bottom:8px;">
-                <div style="display:flex; justify-content:space-between; font-size:0.84rem; font-weight:700; color:#E0E7FF;">
-                    <span>{d_name}</span><span>{d_score}%</span>
-                </div>
-                <div style="background:rgba(255,255,255,0.12); border-radius:10px; height:8px; overflow:hidden; margin-top:3px;">
-                    <div style="width:{d_score}%; height:100%; background:{b_col}; border-radius:10px;"></div>
-                </div>
-            </div>"""
+            bars_html += (
+                f'<div style="margin-bottom:8px;">'
+                f'<div style="display:flex; justify-content:space-between; font-size:0.84rem; font-weight:700; color:#E0E7FF;">'
+                f'<span>{d_name}</span><span>{d_score}%</span></div>'
+                f'<div style="background:rgba(255,255,255,0.12); border-radius:10px; height:8px; overflow:hidden; margin-top:3px;">'
+                f'<div style="width:{d_score}%; height:100%; background:{b_col}; border-radius:10px;"></div>'
+                f'</div></div>'
+            )
 
-        st.markdown(f"""
-        <div class="psycho-card">
-            <div class="psycho-title">📊 Overarching Pattern & 4-Domain Cognitive Profile</div>
-            <div class="insight-box" style="margin-top: 0; margin-bottom: 14px;">
-                <b>🎯 Pattern Analyzed:</b> {tp_brief['pattern_summary']}
-            </div>
-            {bars_html}
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="psycho-card">'
+            f'<div class="psycho-title">📊 Overarching Pattern &amp; 4-Domain Cognitive Profile</div>'
+            f'<div class="insight-box" style="margin-top:0; margin-bottom:14px;">'
+            f'<b>🎯 Pattern Analyzed:</b> {tp_brief["pattern_summary"]}'
+            f'</div>'
+            f'{bars_html}'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
         # 3. Chronological Log of Every Mistake Made Until Correct Answer + AI Reasons
         st.markdown("### 📝 Every Mistake Made Before Entering Correct Answer & AI's Reasons")
