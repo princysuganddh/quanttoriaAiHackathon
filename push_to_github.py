@@ -1,5 +1,5 @@
 """
-GitHub Push Utility for GhostBug AI
+GitHub Push Utility for Quanttoria AI Maths
 Usage:
     python push_to_github.py <YOUR_GITHUB_PERSONAL_ACCESS_TOKEN>
 Or set the environment variable GITHUB_TOKEN and run:

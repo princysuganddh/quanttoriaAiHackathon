@@ -1,70 +1,50 @@
-# 👻 GhostBug AI: Prerequisite Gap Diagnostic & Healing Engine
+# 🧮 Quanttoria AI Maths: Child-Friendly Adaptive Quiz & Cognitive-Psychometric Engine
 
-> **Built for the Google AI Hackathon**  
-> *Stack: Gemini 2.5 Flash, Nano Banana Visual Aid, Google Agent Skills, and Google Cloud Run*
-
----
-
-## 🎯 The Core Problem: Invisible "Ghost Gaps" in Middle School Math
-When middle school students fail multi-step Grade 6 math curriculum word problems, traditional EdTech tools and LMS auto-graders report that the student failed Grade 6 concepts (e.g. algebraic subtraction, ratios, or problem-solving).
-
-In reality, over **80% of student failures** are caused by unstated, un-tested **Ghost Gaps**—foundational prerequisite standards from Grade 4 or 5 that quietly poison the student's working steps.
-
-### Target Curriculum Problems
-1. **Q.05 (Hangar Fuel: Quarts vs Gallons)**:
-   - *Problem*: The hangar needs to have fuel. 16 quarts of fuel costs the same as 4 gallons of fuel. Which is the better deal in terms of quantity?
-   - *Visual*: Interactive curriculum question image displayed directly in the panel (`assets/hangar_fuel_question.png`).
-   - *Target Solution*: Both options are equally viable (16 quarts = 4 gallons).
-   - *Whiteboard Step 1 (WB1)*: $1\text{ gallon} = 4\text{ quarts} \implies 4\text{ gallons} = 4 \times 4 = 16\text{ quarts}$.
-   - *Whiteboard Step 2 (WB2)*: $16\text{ quarts} = 16\text{ quarts} \implies$ Both options offer the exact same quantity.
-   - *Classic Mistake*: Thinking 1 gallon = 2 quarts, leading to $4 \times 2 = 8\text{ quarts}$ and choosing 16 quarts as "more".
-
-2. **Q.01 (Plane Cargo Capacity)**:
-   - *Problem*: The available capacity of the cargo area in a commercial plane is 1,300 lb. If 1/2 ton of the cargo is loaded, how much more can be added?
-   - *Target Solution*: 300 lb
-   - *Whiteboard Step 1 (WB1)*: $1\text{ ton} = 2,000\text{ lb} \implies 1/2\text{ ton} = 1,000\text{ lb}$
-   - *Whiteboard Step 2 (WB2)*: $1,300\text{ lb} - 1,000\text{ lb} = 300\text{ lb}$
-   - *Classic Mistake*: Student calculates $1/2\text{ ton} = 500\text{ lb}$, leading to $1,300 - 500 = 800\text{ lb}$.
-
-3. **Q.02 (Cargo Trolleys)**:
-   - *Problem*: To load 1/2 ton cargo on the plane, trolleys were brought. If the capacity of the trolleys is 850 lb, by what amount should its capacity be increased?
-   - *Target Solution*: 150 lb
-   - *Whiteboard Step 1 (WB1)*: $1\text{ ton} = 2,000\text{ lb} \implies 1/2\text{ ton} = 1,000\text{ lb}$
-   - *Whiteboard Step 2 (WB2)*: $1,000\text{ lb} - 850\text{ lb} = 150\text{ lb}$
+> **Built for the Quanttoria AI Hackathon**  
+> *Stack: Gemini 2.5 Flash, Microsoft Neural Kid Voice (`edge-tts`), Web Speech-to-Text, Google Agent Skills, Interactive Whiteboard, and Google Cloud Run*
 
 ---
 
-## 🧠 Google Agent Skills Architecture (`skills/`)
-GhostBug AI implements modular Google Agent Skills:
-- **`skills/ghost_mapper.md`**:
-  Diagnostic agent skill that inspects student multi-line working steps, isolates the prerequisite standard (`CCSS.MATH.4.MD.A.1`), and maps the exact cognitive misconception.
-- **`skills/deliberate_bug_leo.md`**:
-  Peer-learning agent skill that spawns **Leo**, an AI classmate who is infected with the exact same bug on a deliberate variation. Harnesses the **Protégé Effect** (learning by teaching) to heal the prerequisite gap.
+## ✨ What Makes Quanttoria AI Maths Unique
+
+Most math tutor apps either grade kids harshly with red Xs or overwhelm them with clinical jargon mid-quiz. **Quanttoria AI Maths** separates the **child's joyful learning flow** from the **deep AI cognitive & psychometric intelligence**:
+
+1. **🖼️ 4-Question Visual Airport Math Adventure (`Q1 → Q2 → Q3 → Q4`)**:
+   - **Q1 · Hangar Fuel**: `16 quarts` vs `4 gallons` (`1 gal = 4 qt`)
+   - **Q2 · Fire Sand**: `20 lbs` sand shared into `8 small buckets` → `40 oz` (`1 lb = 16 oz`)
+   - **Q3 · Hangar Depth**: `5/10 km` minus `100 m` maintenance area → `400 m` (`1 km = 1,000 m`)
+   - **Q4 · Plane Cargo**: `1,300 lb` capacity minus `1/2 ton` loaded → `300 lb` (`1 US ton = 2,000 lb`)
+2. **✨ Blinking Visual Hints + Funny 2-Liner Age-Friendly Cues**:
+   - When a student makes a mistake, the exact hint spot **blinks & glows directly on the question image** paired with a funny, playful 2-liner cue so kids slow down and stop rushing in overconfidence.
+3. **🔊 Crystal-Clear Nobita-Style Neural Kid Voice & 🎙️ Speech-to-Text**:
+   - Powered by `edge-tts` (`en-US-AnaNeural`) with natural offline fallback — speaks cues, hints, congratulations, magic formulas, and step-by-step solutions aloud.
+   - Built-in Web Speech Recognition mic lets kids speak answers aloud.
+4. **🎉 Solution Steps + Formula + `NEXT` Button Flow**:
+   - On every correct answer, balloons celebrate the win, the magic formula & 2-step solution are displayed and spoken aloud, and the next question loads only when the student taps **`➡️ NEXT QUESTION`**.
+5. **🔬 Compact End-of-Quiz USP — Dr. Quanttoria AI Cognitive & Psychometric Review**:
+   - Silently tracks every mistake attempt and cognitive domain (*Schema Encoding*, *Working Memory*, *Unit Attention*, *Number Sense*) throughout the quiz without distracting the child.
+   - After Q4 is solved, unlocks the **`👩‍🏫 Teacher / Parent Review`** dashboard with:
+     - Formal AI letter addressed directly to the Teacher / Parent
+     - Overarching cognitive & psychometric pattern analyzed by AI
+     - Chronological log of every mistake made before entering the correct answer + AI's cognitive reasons
+     - **All Possible Mistakes Matrix** highlighting traps the student triggered vs. avoided
+     - Post-quiz similar-concept practice booster
 
 ---
 
-## 🖥️ Two-Panel 50/50 Architecture
-- **Left Panel (Curriculum Problem + GhostBug AI & Leo)**:
-  - Curriculum problem switcher (Q.05 with provided image visual, Q.01, Q.02).
-  - Student working steps input (pre-filled with the classic mistake).
-  - Gemini 2.5 Flash Diagnostic Engine triggering the glowing **Red Ghost Alert**.
-  - **Deliberate Bug Leo** companion chat.
-  - Interactive **'Teach Leo'** healing box turning green (**'Ghost Gap Healed!'**) upon student explanation.
-  - Simulated **Gemini Live Voice Input** toggle with live audio wave pulse.
-- **Right Panel (Interactive Digital Whiteboard + Nano Banana)**:
-  - Grid-lined Classroom Whiteboard styling.
-  - Step reveals: `Reveal WB1` and `Reveal WB2`.
-  - **Nano Banana Visual Aid**: Generates educational visual diagrams illustrating the conversion rule.
-  - **Freehand Stylus Canvas**: Zero-dependency browser whiteboard canvas with multi-color pens (Black, Blue, Red, Green), stroke width, and eraser/clear controls.
+## 🚀 Run Locally
+
+```bash
+pip install -r requirements.txt
+streamlit run app.py --server.port 8501
+```
 
 ---
 
 ## ☁️ Google Cloud Run Deployment
-GhostBug AI is containerized and production-ready for Google Cloud Run:
 
 ```bash
-# 1-Command Deploy to Google Cloud Run
-gcloud run deploy ghostbug-ai \
+gcloud run deploy quanttoria-ai-maths \
     --source . \
     --platform managed \
     --region us-central1 \
