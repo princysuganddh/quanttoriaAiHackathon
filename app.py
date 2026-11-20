@@ -1248,7 +1248,11 @@ def render_cartoon_voice_player(spoken_text: str, enabled: bool, nonce: int, moo
     border = "#16A34A" if mood == "cheer" else "#EA580C"
     txt_col = "#14532D" if mood == "cheer" else "#9A3412"
     label = "🧒 Formula Voice Cheer!" if mood == "cheer" else "🧒 Nobi-Buddy Clue!"
-    auto_js = "true" if enabled else "false"
+    already_played = st.session_state.get("last_played_speech_nonce") == nonce
+    should_auto_play = bool(enabled and not already_played)
+    if should_auto_play:
+        st.session_state["last_played_speech_nonce"] = nonce
+    auto_js = "true" if should_auto_play else "false"
     audio_tag = (
         f'<audio id="nobiAudio" preload="auto" src="data:audio/mpeg;base64,{mp3_b64}"></audio>'
         if mp3_b64
@@ -1316,7 +1320,9 @@ def render_cartoon_voice_player(spoken_text: str, enabled: bool, nonce: int, moo
         }}
 
         function playBuddyVoice() {{
+          if ('speechSynthesis' in window) window.speechSynthesis.cancel();
           if (audioEl) {{
+            audioEl.pause();
             audioEl.currentTime = 0;
             audioEl.playbackRate = 1.28;
             audioEl.onplay = () => {{ statusEl.innerText = '🧒🎵 Speaking...'; }};
@@ -1329,9 +1335,13 @@ def render_cartoon_voice_player(spoken_text: str, enabled: bool, nonce: int, moo
           }}
         }}
 
-        if (shouldAuto && !window.sessionStorage.getItem(nonceKey)) {{
-          window.sessionStorage.setItem(nonceKey, "1");
-          playBuddyVoice();
+        if (shouldAuto) {{
+          let ran = false;
+          try {{
+            ran = Boolean(window.sessionStorage.getItem(nonceKey));
+            if (!ran) window.sessionStorage.setItem(nonceKey, "1");
+          }} catch (e) {{}}
+          if (!ran) playBuddyVoice();
         }}
       </script>
     </body>
@@ -2808,89 +2818,57 @@ with left_col:
 # RIGHT PANEL: Classroom Whiteboard + Nano Banana + Stylus Canvas
 # ==========================================
 with right_col:
-    st.markdown("""
-    <div style="background: #FFFFFF; border: 2px solid #CBD5E1; border-radius: 14px; padding: 14px 18px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-family: 'Fredoka', cursive; font-size: 1.35rem; color: #1E293B; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                <span>📋</span> Interactive Classroom Whiteboard
-            </div>
-            <span style="background: #EEF2FF; color: #4F46E5; font-size: 0.78rem; font-weight: 700; padding: 3px 10px; border-radius: 12px; border: 1px solid #C7D2FE;">
-                Live Stylus & Math Canvas
-            </span>
-        </div>
-        <div style="font-size: 0.85rem; color: #64748B; margin-top: 4px;">
-            Work out your calculations on the board below, or reveal step-by-step hints & visual diagrams:
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<div style="background:#FFFFFF; border:2px solid #CBD5E1; border-radius:14px; padding:14px 18px; margin-bottom:14px; box-shadow:0 4px 12px rgba(0,0,0,0.05);">'
+        '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">'
+        '<div style="font-family:\'Fredoka\',cursive; font-size:1.3rem; color:#1E293B; font-weight:700; display:flex; align-items:center; gap:8px;">'
+        '<span>📋</span> Interactive Classroom Whiteboard</div>'
+        '<span style="background:#EEF2FF; color:#4F46E5; font-size:0.76rem; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid #C7D2FE;">'
+        'Live Stylus &amp; Math Canvas</span></div>'
+        '<div style="font-size:0.84rem; color:#64748B; margin-top:4px;">'
+        'Work out your calculations on the board below, or reveal step-by-step hints &amp; visual diagrams:</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
     col_wb1, col_wb2, col_nb = st.columns(3)
     with col_wb1:
         if st.button("🔍 Hint 1 (Magic Rule)", use_container_width=True):
             st.session_state.show_wb1 = not st.session_state.show_wb1
-            if st.session_state.show_wb1:
-                st.session_state.speech_nonce += 1
     with col_wb2:
         if st.button("🎯 Hint 2 (Step 2)", use_container_width=True):
             st.session_state.show_wb2 = not st.session_state.show_wb2
-            if st.session_state.show_wb2:
-                st.session_state.speech_nonce += 1
     with col_nb:
         if st.button("🍌 Picture Clue!", use_container_width=True, type="primary"):
             st.session_state.show_nano_banana = not st.session_state.show_nano_banana
 
     if st.session_state.show_wb1:
-        st.markdown(f"""
-        <div class="wb-step-card">
-            <span style="background: #DBEAFE; color: #1D4ED8; font-weight: 700; font-size: 0.74rem; padding: 2px 8px; border-radius: 4px;">
-                🐥 PIP'S MAGIC RULE HINT (STEP 1)
-            </span>
-            <div style="font-size: 1.15rem; font-weight: 700; color: #1E40AF; margin-top: 8px;">
-                {problem['wb1']}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        render_cartoon_voice_player(
-            f"Psst! Magic rule alert! {problem['wb1'].replace('⟹', ', which means ')}",
-            enabled=st.session_state.voice_enabled,
-            nonce=st.session_state.speech_nonce + 1000,
-            mood="cue",
+        st.markdown(
+            f'<div class="wb-step-card">'
+            f'<span style="background:#DBEAFE; color:#1D4ED8; font-weight:700; font-size:0.74rem; padding:2px 8px; border-radius:4px;">'
+            f'🐥 MAGIC RULE HINT (STEP 1)</span>'
+            f'<div style="font-size:1.1rem; font-weight:700; color:#1E40AF; margin-top:8px;">{problem["wb1"]}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
         )
 
     if st.session_state.show_wb2:
-        st.markdown(f"""
-        <div class="wb-step-card wb2">
-            <span style="background: #D1FAE5; color: #047857; font-weight: 700; font-size: 0.74rem; padding: 2px 8px; border-radius: 4px;">
-                🐥 PIP'S FINAL STEP HINT (STEP 2)
-            </span>
-            <div style="font-size: 1.15rem; font-weight: 700; color: #065F46; margin-top: 8px;">
-                {problem['wb2']}
-            </div>
-            <div style="font-size: 0.84rem; color: #475569; margin-top: 4px;">
-                ✅ <b>Check:</b> {problem['correct_wb2_math']}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        render_cartoon_voice_player(
-            f"Here comes step two! {problem['wb2'].replace('⟹', ', so ')}",
-            enabled=st.session_state.voice_enabled,
-            nonce=st.session_state.speech_nonce + 2000,
-            mood="cue",
+        st.markdown(
+            f'<div class="wb-step-card wb2">'
+            f'<span style="background:#D1FAE5; color:#047857; font-weight:700; font-size:0.74rem; padding:2px 8px; border-radius:4px;">'
+            f'🐥 FINAL STEP HINT (STEP 2)</span>'
+            f'<div style="font-size:1.1rem; font-weight:700; color:#065F46; margin-top:8px;">{problem["wb2"]}</div>'
+            f'<div style="font-size:0.84rem; color:#475569; margin-top:4px;">✅ <b>Check:</b> {problem["correct_wb2_math"]}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
         )
 
     if problem.get("solution_image_file") and os.path.exists(problem["solution_image_file"]):
         if st.checkbox("📖 View Teacher Solution Board", value=False, key=f"sol_img_{current_qid}"):
             st.image(problem["solution_image_file"], caption="Whiteboard Solution Guide", use_container_width=True)
 
-    # NANO BANANA VISUAL AID (TAILORED TO EACH OF THE 4 QUESTIONS)
+    # NANO BANANA VISUAL AID (TAILORED TO EACH OF THE 4 QUESTIONS — ZERO INDENTATION SO SVG NEVER SHOWS AS CODE!)
     if st.session_state.show_nano_banana:
-        st.markdown("""
-        <div style="background: #FFFBEB; border: 2px solid #F59E0B; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
-            <div style="font-weight: 700; color: #B45309; display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                <span>🍌</span> Nano Banana Visual Concept Diagram
-            </div>
-        """, unsafe_allow_html=True)
-
         if current_qid == "Q1":
             svg_diagram = """
             <svg viewBox="0 0 760 275" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="background:#0F172A; border-radius: 10px; font-family: 'Inter', sans-serif;">
@@ -2899,31 +2877,24 @@ with right_col:
                 <text x="62" y="114" fill="#1E293B" font-size="28" font-weight="800">16 QUARTS</text>
                 <text x="62" y="150" fill="#854D0E" font-size="14">Single Fuel Drum</text>
                 <text x="62" y="192" fill="#422006" font-size="13" font-weight="700">Total: 16 Quarts</text>
-
                 <text x="295" y="138" fill="#38BDF8" font-size="44" font-weight="900">=</text>
                 <text x="282" y="166" fill="#94A3B8" font-size="12" font-weight="700">EXACTLY EQUAL</text>
-
                 <g transform="translate(385, 28)">
                     <rect x="0" y="0" width="72" height="92" rx="8" fill="#38BDF8" stroke="#0284C7" stroke-width="2"/>
                     <text x="14" y="42" fill="#0C4A6E" font-size="14" font-weight="800">1 GAL</text>
                     <text x="12" y="68" fill="#FFFFFF" font-size="12" font-weight="700">4 qt</text>
-
                     <rect x="86" y="0" width="72" height="92" rx="8" fill="#38BDF8" stroke="#0284C7" stroke-width="2"/>
                     <text x="100" y="42" fill="#0C4A6E" font-size="14" font-weight="800">1 GAL</text>
                     <text x="98" y="68" fill="#FFFFFF" font-size="12" font-weight="700">4 qt</text>
-
                     <rect x="172" y="0" width="72" height="92" rx="8" fill="#38BDF8" stroke="#0284C7" stroke-width="2"/>
                     <text x="186" y="42" fill="#0C4A6E" font-size="14" font-weight="800">1 GAL</text>
                     <text x="184" y="68" fill="#FFFFFF" font-size="12" font-weight="700">4 qt</text>
-
                     <rect x="258" y="0" width="72" height="92" rx="8" fill="#38BDF8" stroke="#0284C7" stroke-width="2"/>
                     <text x="272" y="42" fill="#0C4A6E" font-size="14" font-weight="800">1 GAL</text>
                     <text x="270" y="68" fill="#FFFFFF" font-size="12" font-weight="700">4 qt</text>
-
                     <rect x="0" y="112" width="330" height="44" rx="8" fill="#1E293B" stroke="#6366F1" stroke-width="2"/>
                     <text x="18" y="139" fill="#A5F3FC" font-size="15" font-weight="700">4 Gallons × 4 = 16 Quarts Total</text>
                 </g>
-
                 <rect x="35" y="236" width="680" height="26" rx="6" fill="#14532D"/>
                 <text x="52" y="254" fill="#86EFAC" font-size="12" font-weight="700">✅ RULE: 1 gallon = 4 quarts → Both options give the exact same 16 quarts!</text>
             </svg>
@@ -2937,23 +2908,19 @@ with right_col:
                 <text x="55" y="138" fill="#FDE68A" font-size="15" font-weight="700">1 lb = 16 oz</text>
                 <rect x="50" y="156" width="200" height="38" rx="8" fill="#78350F"/>
                 <text x="64" y="180" fill="#4ADE80" font-size="16" font-weight="800">20 × 16 = 320 oz</text>
-
                 <path d="M 285 118 L 340 118 M 328 106 L 342 118 L 328 130" stroke="#38BDF8" stroke-width="4" stroke-linecap="round" fill="none"/>
                 <text x="284" y="150" fill="#93C5FD" font-size="12" font-weight="700">÷ 8 Buckets</text>
-
                 <g transform="translate(360, 24)">
                     <text x="0" y="20" fill="#A5F3FC" font-size="14" font-weight="800">STEP 2: SHARE EQUALLY INTO 8 BUCKETS</text>
                     <rect x="0" y="36" width="80" height="72" rx="10" fill="#DC2626" stroke="#FCA5A5" stroke-width="2"/><text x="18" y="78" fill="#FFF" font-size="16" font-weight="800">40 oz</text>
                     <rect x="92" y="36" width="80" height="72" rx="10" fill="#DC2626" stroke="#FCA5A5" stroke-width="2"/><text x="110" y="78" fill="#FFF" font-size="16" font-weight="800">40 oz</text>
                     <rect x="184" y="36" width="80" height="72" rx="10" fill="#DC2626" stroke="#FCA5A5" stroke-width="2"/><text x="202" y="78" fill="#FFF" font-size="16" font-weight="800">40 oz</text>
                     <rect x="276" y="36" width="80" height="72" rx="10" fill="#DC2626" stroke="#FCA5A5" stroke-width="2"/><text x="294" y="78" fill="#FFF" font-size="16" font-weight="800">40 oz</text>
-
                     <rect x="0" y="122" width="80" height="72" rx="10" fill="#DC2626" stroke="#FCA5A5" stroke-width="2"/><text x="18" y="164" fill="#FFF" font-size="16" font-weight="800">40 oz</text>
                     <rect x="92" y="122" width="80" height="72" rx="10" fill="#DC2626" stroke="#FCA5A5" stroke-width="2"/><text x="110" y="164" fill="#FFF" font-size="16" font-weight="800">40 oz</text>
                     <rect x="184" y="122" width="80" height="72" rx="10" fill="#DC2626" stroke="#FCA5A5" stroke-width="2"/><text x="202" y="164" fill="#FFF" font-size="16" font-weight="800">40 oz</text>
                     <rect x="276" y="122" width="80" height="72" rx="10" fill="#DC2626" stroke="#FCA5A5" stroke-width="2"/><text x="294" y="164" fill="#FFF" font-size="16" font-weight="800">40 oz</text>
                 </g>
-
                 <rect x="30" y="236" width="690" height="28" rx="6" fill="#14532D"/>
                 <text x="48" y="255" fill="#86EFAC" font-size="13" font-weight="700">✅ CHECK: 8 buckets × 40 oz = 320 oz = 20 lbs! Each bucket holds 40 oz.</text>
             </svg>
@@ -2964,15 +2931,12 @@ with right_col:
                 <text x="35" y="42" fill="#A5F3FC" font-size="15" font-weight="800">STEP 1: CONVERT 5/10 KM TO METERS (1 km = 1,000 m)</text>
                 <rect x="35" y="58" width="690" height="58" rx="10" fill="#1E293B" stroke="#38BDF8" stroke-width="3"/>
                 <text x="55" y="94" fill="#FFFFFF" font-size="22" font-weight="800">Total Hangar Depth = (5/10) × 1,000 m = 500 m</text>
-
                 <text x="35" y="148" fill="#FDE68A" font-size="15" font-weight="800">STEP 2: SUBTRACT THE 100 m EQUIPMENT AREA</text>
                 <rect x="35" y="162" width="140" height="58" rx="10" fill="#EAB308" stroke="#CA8A04" stroke-width="3"/>
                 <text x="50" y="188" fill="#422006" font-size="12" font-weight="800">EQUIPMENT</text>
                 <text x="64" y="209" fill="#1E293B" font-size="18" font-weight="900">100 m</text>
-
                 <rect x="185" y="162" width="540" height="58" rx="10" fill="#0284C7" stroke="#38BDF8" stroke-width="3"/>
                 <text x="210" y="198" fill="#FFFFFF" font-size="22" font-weight="800">✈️ AVAILABLE FOR PLANES: 500 m − 100 m = 400 m</text>
-
                 <rect x="35" y="236" width="690" height="26" rx="6" fill="#14532D"/>
                 <text x="52" y="254" fill="#86EFAC" font-size="13" font-weight="700">✅ RULE: 'Kilo' = 1,000 → 5/10 km = 500 m → 500 − 100 = 400 m available!</text>
             </svg>
@@ -2983,24 +2947,28 @@ with right_col:
                 <rect x="30" y="22" width="700" height="76" rx="10" fill="#1E293B" stroke="#6366F1" stroke-width="3" stroke-dasharray="6,4"/>
                 <text x="50" y="50" fill="#C7D2FE" font-size="14" font-weight="700">ANCHOR BENCHMARK (US CUSTOMARY WEIGHT)</text>
                 <text x="50" y="80" fill="#38BDF8" font-size="22" font-weight="800">1 US TON = 2,000 LBS</text>
-
                 <rect x="30" y="118" width="440" height="96" rx="10" fill="#B45309" stroke="#F59E0B" stroke-width="3"/>
                 <text x="50" y="148" fill="#FEF3C7" font-size="14" font-weight="700">📦 ALREADY LOADED (1/2 TON)</text>
                 <text x="50" y="184" fill="#FFFFFF" font-size="24" font-weight="800">1,000 LBS</text>
                 <text x="50" y="205" fill="#FDE68A" font-size="12" font-weight="600">2,000 ÷ 2 = 1,000 lb</text>
-
                 <rect x="485" y="118" width="245" height="96" rx="10" fill="#065F46" stroke="#10B981" stroke-width="3"/>
                 <text x="505" y="148" fill="#A7F3D0" font-size="14" font-weight="700">✈️ SPACE LEFT</text>
                 <text x="505" y="184" fill="#FFFFFF" font-size="24" font-weight="800">300 LBS</text>
                 <text x="505" y="205" fill="#6EE7B7" font-size="12" font-weight="600">1,300 − 1,000 = 300 lb</text>
-
                 <rect x="30" y="236" width="700" height="28" rx="6" fill="#14532D"/>
                 <text x="48" y="255" fill="#86EFAC" font-size="13" font-weight="700">✅ RULE: 1 US Ton = 2,000 lb (not 1,000!) → 1,300 − 1,000 = 300 lb left.</text>
             </svg>
             """
 
-        st.markdown(svg_diagram, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        compact_svg = "".join(line.strip() for line in svg_diagram.splitlines())
+        st.markdown(
+            f'<div style="background:#FFFBEB; border:2px solid #F59E0B; border-radius:12px; padding:12px; margin-bottom:12px;">'
+            f'<div style="font-weight:700; color:#B45309; display:flex; align-items:center; gap:8px; margin-bottom:8px;">'
+            f'<span>🍌</span> Nano Banana Visual Concept Diagram</div>'
+            f'{compact_svg}'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
     # ULTRA-RESPONSIVE INTERACTIVE FREEHAND DRAWING CANVAS (POINTER EVENTS API)
     st.markdown("#### ✍️ Freehand Stylus & Scratchpad Whiteboard")
