@@ -1351,8 +1351,9 @@ def render_cartoon_voice_player(spoken_text: str, enabled: bool, nonce: int, moo
 
 
 def render_speech_to_text_mic(qid: str, unit_label: str = ""):
-    """Interactive browser Speech-to-Text widget so kids can speak their answer or math idea to Pip!"""
-    hint_eg = f'Say your answer like "40 {unit_label}"!' if unit_label else 'Say "Option A", "Option B", or "Option C"!'
+    """Interactive browser Speech-to-Text widget that converts spoken answer to text, fills the Answer Box, and submits automatically!"""
+    is_mcq_js = "true" if not unit_label else "false"
+    hint_eg = f'Tap & speak your answer (e.g., "40 {unit_label}") — auto-fills & submits!' if unit_label else 'Tap & say "Option A", "Option B", or "Option C" (or "Both equal")!'
     mic_html = f"""
     <!DOCTYPE html>
     <html>
@@ -1392,7 +1393,7 @@ def render_speech_to_text_mic(qid: str, unit_label: str = ""):
       }}
       .transcript-pill {{
         flex: 1;
-        min-width: 160px;
+        min-width: 170px;
         background: white;
         border: 1px solid #C7D2FE;
         border-radius: 8px;
@@ -1401,35 +1402,108 @@ def render_speech_to_text_mic(qid: str, unit_label: str = ""):
         color: #1E1B4B;
         font-weight: 600;
       }}
-      .copy-btn {{
-        background: #4F46E5;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 5px 10px;
-        font-size: 11.5px;
-        font-weight: 700;
-        cursor: pointer;
-        display: none;
-      }}
     </style>
     </head>
     <body>
       <div class="stt-box">
         <button id="micBtn" class="mic-btn" onclick="toggleMic()">🎙️ Speak Your Answer</button>
         <div id="transcriptBox" class="transcript-pill">🐥 {hint_eg}</div>
-        <button id="copyBtn" class="copy-btn" onclick="copyText()">📋 Copy</button>
       </div>
       <script>
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const isMCQ = {is_mcq_js};
         let recognition = null;
         let listening = false;
         let lastHeard = "";
+        let submittedThisTurn = false;
+
+        function wordsToNumber(str) {{
+          // Direct numeric match first (handles "40", "40 oz", "2.5", "1,000", etc.)
+          const cleaned = str.replace(/,/g, '');
+          const digitMatch = cleaned.match(/-?\\d+(?:\\.\\d+)?/);
+          if (digitMatch) return digitMatch[0];
+
+          const s = str.toLowerCase().replace(/[^a-z\\s.-]/g, ' ').trim();
+          const map = {{
+            zero:0, one:1, two:2, to:2, too:2, three:3, four:4, for:4, five:5,
+            six:6, seven:7, eight:8, ate:8, nine:9, ten:10, eleven:11, twelve:12,
+            thirteen:13, fourteen:14, fifteen:15, sixteen:16, seventeen:17, eighteen:18, nineteen:19,
+            twenty:20, thirty:30, forty:40, fourty:40, fifty:50, sixty:60, seventy:70, eighty:80, ninety:90
+          }};
+          const tokens = s.split(/\\s+/);
+          let total = 0, current = 0, found = false;
+          for (let i = 0; i < tokens.length; i++) {{
+            const w = tokens[i];
+            if (w in map) {{ current += map[w]; found = true; }}
+            else if (w === 'hundred') {{ current = (current || 1) * 100; found = true; }}
+            else if (w === 'thousand') {{ total += (current || 1) * 1000; current = 0; found = true; }}
+            else if (w === 'point' && i + 1 < tokens.length && tokens[i + 1] in map) {{
+              return String(total + current) + '.' + String(map[tokens[i + 1]]);
+            }}
+          }}
+          if (found) return String(total + current);
+          return str.trim();
+        }}
+
+        function fillAndSubmitAnswer(spokenText) {{
+          const box = document.getElementById('transcriptBox');
+          try {{
+            const pDoc = window.parent.document;
+            let filled = false;
+            let displayVal = spokenText;
+
+            if (isMCQ) {{
+              const low = spokenText.toLowerCase();
+              let targetPrefix = null;
+              if (/\\b(c|see|sea|both|equal|equally|same|viable)\\b/.test(low)) targetPrefix = 'C)';
+              else if (/\\b(a|16|sixteen|quart|quarts)\\b/.test(low)) targetPrefix = 'A)';
+              else if (/\\b(b|bee|4|four|gallon|gallons)\\b/.test(low)) targetPrefix = 'B)';
+
+              if (targetPrefix) {{
+                const radioContainer = pDoc.querySelector('[data-testid="stRadio"]');
+                if (radioContainer) {{
+                  const labels = Array.from(radioContainer.querySelectorAll('label'));
+                  const matchLabel = labels.find(l => l.innerText && l.innerText.trim().startsWith(targetPrefix));
+                  if (matchLabel) {{
+                    matchLabel.click();
+                    displayVal = matchLabel.innerText.trim();
+                    filled = true;
+                  }}
+                }}
+              }}
+            }} else {{
+              const parsed = wordsToNumber(spokenText);
+              displayVal = parsed;
+              const inp = pDoc.querySelector('input[placeholder^="Type number in"]');
+              if (inp) {{
+                const nativeSetter = Object.getOwnPropertyDescriptor(window.parent.HTMLInputElement.prototype, 'value').set;
+                inp.focus();
+                nativeSetter.call(inp, parsed);
+                inp.dispatchEvent(new Event('input', {{ bubbles: true }}));
+                inp.dispatchEvent(new Event('change', {{ bubbles: true }}));
+                inp.blur();
+                filled = true;
+              }}
+            }}
+
+            if (filled) {{
+              box.innerText = '✅ Entered "' + displayVal + '" — checking your answer...';
+              setTimeout(() => {{
+                const btns = Array.from(pDoc.querySelectorAll('button'));
+                const submitBtn = btns.find(b => b.innerText && b.innerText.includes('Check My Answer'));
+                if (submitBtn) submitBtn.click();
+              }}, 450);
+            }} else {{
+              box.innerText = '🗣️ Heard: "' + spokenText + '" — try saying the number or Option A / B / C clearly!';
+            }}
+          }} catch (err) {{
+            box.innerText = '🗣️ Heard: "' + spokenText + '" (type it into the box below)';
+          }}
+        }}
 
         function toggleMic() {{
           const btn = document.getElementById('micBtn');
           const box = document.getElementById('transcriptBox');
-          const copyBtn = document.getElementById('copyBtn');
           if (!SpeechRecognition) {{
             box.innerText = '⚠️ Speech-to-Text works best in Chrome or Edge — type your answer below!';
             return;
@@ -1442,21 +1516,29 @@ def render_speech_to_text_mic(qid: str, unit_label: str = ""):
           recognition.lang = 'en-US';
           recognition.interimResults = true;
           recognition.maxAlternatives = 1;
+          lastHeard = "";
+          submittedThisTurn = false;
 
           recognition.onstart = () => {{
             listening = true;
             btn.classList.add('listening');
-            btn.innerText = '🔴 Listening... Tap to Stop';
-            box.innerText = '🐥 Pip is listening... speak now!';
+            btn.innerText = '🔴 Listening... Speak Now!';
+            box.innerText = '🐥 Listening... say your answer clearly!';
           }};
           recognition.onresult = (event) => {{
             let text = '';
+            let gotFinal = false;
             for (let i = 0; i < event.results.length; i++) {{
               text += event.results[i][0].transcript;
+              if (event.results[i].isFinal) gotFinal = true;
             }}
             lastHeard = text.trim();
-            box.innerText = '🗣️ Pip heard: "' + lastHeard + '"';
-            copyBtn.style.display = 'inline-block';
+            box.innerText = '🗣️ Hearing: "' + lastHeard + '"';
+            if (gotFinal && lastHeard && !submittedThisTurn) {{
+              submittedThisTurn = true;
+              recognition.stop();
+              fillAndSubmitAnswer(lastHeard);
+            }}
           }};
           recognition.onerror = (e) => {{
             box.innerText = '🐥 Oops! Mic permission needed (' + e.error + ') — or type below!';
@@ -1465,17 +1547,12 @@ def render_speech_to_text_mic(qid: str, unit_label: str = ""):
             listening = false;
             btn.classList.remove('listening');
             btn.innerText = '🎙️ Speak Your Answer';
+            if (lastHeard && !submittedThisTurn) {{
+              submittedThisTurn = true;
+              fillAndSubmitAnswer(lastHeard);
+            }}
           }};
           recognition.start();
-        }}
-
-        function copyText() {{
-          if (!lastHeard) return;
-          navigator.clipboard.writeText(lastHeard).then(() => {{
-            const b = document.getElementById('copyBtn');
-            b.innerText = '✅ Copied!';
-            setTimeout(() => b.innerText = '📋 Copy', 1200);
-          }});
         }}
       </script>
     </body>
